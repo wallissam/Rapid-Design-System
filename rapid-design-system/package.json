@@ -7,7 +7,8 @@
     "build": "node scripts/build-tokens.js",
     "sync:figma": "node scripts/sync-figma.js",
     "sync": "node scripts/sync-figma.js && node scripts/build-tokens.js",
-    "import:tokens-studio": "node scripts/import-tokens-studio.js"
+    "import:tokens-studio": "node scripts/import-tokens-studio.js",
+    "demo": "npx -y serve . -l 3000 --no-clipboard"
   },
   "devDependencies": {},
   "license": "MIT"

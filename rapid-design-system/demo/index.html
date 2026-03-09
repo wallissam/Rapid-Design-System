@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rapid Design System — Live Demo</title>
+<link rel="stylesheet" href="../packages/css/global.css">
+<link rel="stylesheet" href="../packages/css/utilities.css">
+<style>
+/* ── Reset & Base ──────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  font-family: var(--rapid-font-family-base);
+  font-size: var(--rapid-font-size-md);
+  color: var(--rapid-color-text-primary);
+  background: var(--rapid-color-surface-base);
+  line-height: 1.5;
+  transition: background-color .25s ease, color .25s ease;
+}
+
+/* ── Layout Shell ──────────────────────────────────────────── */
+body { display: flex; min-height: 100vh; }
+
+.sidebar {
+  width: 320px;
+  min-width: 320px;
+  background: var(--rapid-color-surface-raised);
+  border-right: 1px solid var(--rapid-color-border-default);
+  overflow-y: auto;
+  padding: var(--rapid-spacing-lg) var(--rapid-spacing-md);
+  transition: background-color .25s ease, border-color .25s ease;
+  display: flex;
+  flex-direction: column;
+  gap: var(--rapid-spacing-md);
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: var(--rapid-spacing-md);
+  border-bottom: 1px solid var(--rapid-color-border-default);
+  margin-bottom: var(--rapid-spacing-xs);
+}
+
+.sidebar-title {
+  font-size: var(--rapid-font-size-lg);
+  font-weight: var(--rapid-font-weight-bold);
+  letter-spacing: -0.01em;
+}
+
+.sidebar-subtitle {
+  font-size: var(--rapid-font-size-sm);
+  color: var(--rapid-color-text-secondary);
+  margin-top: 2px;
+}
+
+.main {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--rapid-spacing-2xl) var(--rapid-spacing-xl);
+}
+
+/* ── Theme Toggle ──────────────────────────────────────────── */
+.theme-toggle {
+  position: relative;
+  width: 52px;
+  height: 28px;
+  background: var(--rapid-color-border-default);
+  border-radius: var(--rapid-radius-round);
+  cursor: pointer;
+  border: none;
+  transition: background-color .25s ease;
+  flex-shrink: 0;
+}
+
+.theme-toggle::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  background: var(--rapid-color-surface-base);
+  border-radius: 50%;
+  transition: transform .25s ease, background-color .25s ease;
+  box-shadow: var(--rapid-shadow-sm);
+}
+
+.theme-toggle[aria-checked="true"] {
+  background: var(--rapid-color-brand-primary);
+}
+
+.theme-toggle[aria-checked="true"]::after {
+  transform: translateX(24px);
+}
+
+.theme-label {
+  font-size: var(--rapid-font-size-sm);
+  color: var(--rapid-color-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: var(--rapid-spacing-sm);
+}
+
+/* ── Token Editor Section ──────────────────────────────────── */
+.editor-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rapid-spacing-xs);
+}
+
+.editor-group-title {
+  font-size: var(--rapid-font-size-xs);
+  font-weight: var(--rapid-font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--rapid-color-text-secondary);
+  padding: var(--rapid-spacing-xs) 0;
+}
+
+.token-row {
+  display: flex;
+  align-items: center;
+  gap: var(--rapid-spacing-sm);
+  padding: 3px 0;
+}
+
+.token-label {
+  flex: 1;
+  font-size: var(--rapid-font-size-sm);
+  color: var(--rapid-color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.token-color-input {
+  width: 32px;
+  height: 24px;
+  border: 1px solid var(--rapid-color-border-default);
+  border-radius: var(--rapid-radius-sm);
+  padding: 0;
+  cursor: pointer;
+  background: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.token-color-input::-webkit-color-swatch-wrapper { padding: 0; }
+.token-color-input::-webkit-color-swatch {
+  border: none;
+  border-radius: var(--rapid-radius-sm);
+}
+
+.token-text-input {
+  width: 80px;
+  font-size: var(--rapid-font-size-sm);
+  font-family: var(--rapid-font-family-mono);
+  padding: 2px 6px;
+  border: 1px solid var(--rapid-color-border-default);
+  border-radius: var(--rapid-radius-sm);
+  background: var(--rapid-color-surface-base);
+  color: var(--rapid-color-text-primary);
+  transition: border-color .15s;
+}
+
+.token-text-input:focus {
+  outline: none;
+  border-color: var(--rapid-color-brand-primary);
+}
+
+.sidebar-actions {
+  display: flex;
+  gap: var(--rapid-spacing-sm);
+  padding-top: var(--rapid-spacing-sm);
+  border-top: 1px solid var(--rapid-color-border-default);
+  margin-top: auto;
+}
+
+.btn-sm {
+  flex: 1;
+  padding: var(--rapid-spacing-xs) var(--rapid-spacing-sm);
+  font-size: var(--rapid-font-size-sm);
+  font-family: var(--rapid-font-family-base);
+  font-weight: var(--rapid-font-weight-semibold);
+  border-radius: var(--rapid-radius-md);
+  border: 1px solid var(--rapid-color-border-default);
+  background: var(--rapid-color-surface-base);
+  color: var(--rapid-color-text-primary);
+  cursor: pointer;
+  transition: all .15s;
+}
+
+.btn-sm:hover { background: var(--rapid-color-surface-overlay); }
+
+.btn-sm.primary {
+  background: var(--rapid-color-brand-primary);
+  border-color: var(--rapid-color-brand-primary);
+  color: var(--rapid-color-text-on-brand);
+}
+
+.btn-sm.primary:hover { opacity: 0.9; }
+
+/* ── Showcase Sections ─────────────────────────────────────── */
+.showcase-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: var(--rapid-spacing-lg);
+  max-width: 1200px;
+}
+
+.showcase-section {
+  background: var(--rapid-color-surface-raised);
+  border: 1px solid var(--rapid-color-border-default);
+  border-radius: var(--rapid-radius-lg);
+  padding: var(--rapid-spacing-lg);
+  transition: background-color .25s, border-color .25s, box-shadow .25s;
+}
+
+.showcase-section:hover {
+  box-shadow: var(--rapid-shadow-md);
+}
+
+.section-title {
+  font-size: var(--rapid-font-size-md);
+  font-weight: var(--rapid-font-weight-semibold);
+  margin-bottom: var(--rapid-spacing-md);
+  color: var(--rapid-color-text-primary);
+}
+
+.page-title {
+  font-size: var(--rapid-font-size-2xl);
+  font-weight: var(--rapid-font-weight-bold);
+  letter-spacing: -0.02em;
+  margin-bottom: var(--rapid-spacing-xs);
+}
+
+.page-subtitle {
+  font-size: var(--rapid-font-size-md);
+  color: var(--rapid-color-text-secondary);
+  margin-bottom: var(--rapid-spacing-2xl);
+  max-width: 600px;
+  line-height: 1.6;
+}
+
+/* ── Color Swatches ────────────────────────────────────────── */
+.swatch-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: var(--rapid-spacing-sm);
+}
+
+.swatch {
+  aspect-ratio: 1;
+  border-radius: var(--rapid-radius-md);
+  border: 1px solid var(--rapid-color-border-default);
+  display: flex;
+  align-items: flex-end;
+  padding: 4px 6px;
+  font-size: 9px;
+  font-family: var(--rapid-font-family-mono);
+  color: var(--rapid-color-text-on-brand);
+  text-shadow: 0 1px 2px rgba(0,0,0,.5);
+  transition: all .25s;
+}
+
+/* ── Buttons ───────────────────────────────────────────────── */
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--rapid-spacing-sm);
+  align-items: center;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--rapid-spacing-xs);
+  padding: var(--rapid-spacing-sm) var(--rapid-spacing-md);
+  font-family: var(--rapid-font-family-base);
+  font-size: var(--rapid-font-size-md);
+  font-weight: var(--rapid-font-weight-semibold);
+  border-radius: var(--rapid-radius-md);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all .15s ease;
+  text-decoration: none;
+}
+
+.btn-primary {
+  background: var(--rapid-color-brand-primary);
+  color: var(--rapid-color-text-on-brand);
+}
+.btn-primary:hover { opacity: 0.9; }
+
+.btn-outline {
+  background: transparent;
+  border-color: var(--rapid-color-border-strong);
+  color: var(--rapid-color-text-primary);
+}
+.btn-outline:hover { background: var(--rapid-color-surface-overlay); }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--rapid-color-brand-primary);
+}
+.btn-ghost:hover { background: var(--rapid-color-surface-overlay); }
+
+.btn-danger {
+  background: var(--rapid-color-status-danger);
+  color: var(--rapid-color-text-on-brand);
+}
+.btn-danger:hover { opacity: 0.9; }
+
+.btn-success {
+  background: var(--rapid-color-status-success);
+  color: var(--rapid-color-text-on-brand);
+}
+.btn-success:hover { opacity: 0.9; }
+
+/* ── Form Inputs ───────────────────────────────────────────── */
+.form-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rapid-spacing-md);
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rapid-spacing-xs);
+}
+
+.form-label {
+  font-size: var(--rapid-font-size-sm);
+  font-weight: var(--rapid-font-weight-semibold);
+  color: var(--rapid-color-text-primary);
+}
+
+.form-input, .form-select, .form-textarea {
+  padding: var(--rapid-spacing-sm) var(--rapid-spacing-sm);
+  font-family: var(--rapid-font-family-base);
+  font-size: var(--rapid-font-size-md);
+  color: var(--rapid-color-text-primary);
+  background: var(--rapid-color-surface-base);
+  border: 1px solid var(--rapid-color-border-default);
+  border-radius: var(--rapid-radius-md);
+  transition: border-color .15s;
+}
+
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+  outline: none;
+  border-color: var(--rapid-color-brand-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--rapid-color-brand-primary) 20%, transparent);
+}
+
+.form-input::placeholder { color: var(--rapid-color-text-secondary); }
+
+.form-hint {
+  font-size: var(--rapid-font-size-sm);
+  color: var(--rapid-color-text-secondary);
+}
+
+.form-input.error { border-color: var(--rapid-color-status-danger); }
+.form-hint.error { color: var(--rapid-color-status-danger); }
+
+/* ── Cards ─────────────────────────────────────────────────── */
+.card-stack { display: flex; flex-direction: column; gap: var(--rapid-spacing-md); }
+
+.card {
+  background: var(--rapid-color-surface-base);
+  border: 1px solid var(--rapid-color-border-default);
+  border-radius: var(--rapid-radius-lg);
+  padding: var(--rapid-spacing-md);
+  transition: all .2s;
+}
+
+.card:hover { box-shadow: var(--rapid-shadow-md); }
+
+.card-title {
+  font-weight: var(--rapid-font-weight-semibold);
+  margin-bottom: var(--rapid-spacing-xs);
+}
+
+.card-body {
+  font-size: var(--rapid-font-size-sm);
+  color: var(--rapid-color-text-secondary);
+  line-height: 1.5;
+}
+
+.card-footer {
+  display: flex;
+  gap: var(--rapid-spacing-sm);
+  margin-top: var(--rapid-spacing-md);
+  padding-top: var(--rapid-spacing-sm);
+  border-top: 1px solid var(--rapid-color-border-default);
+}
+
+/* ── Table ─────────────────────────────────────────────────── */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--rapid-font-size-sm);
+}
+
+.data-table th {
+  text-align: left;
+  padding: var(--rapid-spacing-sm);
+  font-weight: var(--rapid-font-weight-semibold);
+  background: var(--rapid-color-surface-overlay);
+  border-bottom: 2px solid var(--rapid-color-border-default);
+  color: var(--rapid-color-text-primary);
+}
+
+.data-table td {
+  padding: var(--rapid-spacing-sm);
+  border-bottom: 1px solid var(--rapid-color-border-default);
+  color: var(--rapid-color-text-primary);
+}
+
+.data-table tr:hover td {
+  background: var(--rapid-color-surface-overlay);
+}
+
+/* ── Badges ────────────────────────────────────────────────── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px var(--rapid-spacing-sm);
+  font-size: var(--rapid-font-size-xs);
+  font-weight: var(--rapid-font-weight-semibold);
+  border-radius: var(--rapid-radius-round);
+  letter-spacing: 0.02em;
+}
+
+.badge-success { background: var(--rapid-color-status-success); color: #fff; }
+.badge-warning { background: var(--rapid-color-status-warning); color: #fff; }
+.badge-danger { background: var(--rapid-color-status-danger); color: #fff; }
+.badge-brand { background: var(--rapid-color-brand-primary); color: var(--rapid-color-text-on-brand); }
+
+/* ── Alert / Toast ─────────────────────────────────────────── */
+.alert {
+  padding: var(--rapid-spacing-sm) var(--rapid-spacing-md);
+  border-radius: var(--rapid-radius-md);
+  font-size: var(--rapid-font-size-sm);
+  border-left: 3px solid;
+  display: flex;
+  align-items: center;
+  gap: var(--rapid-spacing-sm);
+}
+
+.alert-success {
+  background: color-mix(in srgb, var(--rapid-color-status-success) 10%, var(--rapid-color-surface-base));
+  border-color: var(--rapid-color-status-success);
+  color: var(--rapid-color-status-success);
+}
+
+.alert-warning {
+  background: color-mix(in srgb, var(--rapid-color-status-warning) 10%, var(--rapid-color-surface-base));
+  border-color: var(--rapid-color-status-warning);
+  color: var(--rapid-color-status-warning);
+}
+
+.alert-danger {
+  background: color-mix(in srgb, var(--rapid-color-status-danger) 10%, var(--rapid-color-surface-base));
+  border-color: var(--rapid-color-status-danger);
+  color: var(--rapid-color-status-danger);
+}
+
+/* ── Spacing Preview ───────────────────────────────────────── */
+.spacing-stack { display: flex; flex-direction: column; gap: var(--rapid-spacing-sm); }
+.spacing-bar-row { display: flex; align-items: center; gap: var(--rapid-spacing-sm); }
+.spacing-bar {
+  height: 12px;
+  background: var(--rapid-color-brand-primary);
+  border-radius: var(--rapid-radius-sm);
+  transition: all .25s;
+  opacity: 0.7;
+}
+.spacing-bar-label {
+  font-size: var(--rapid-font-size-xs);
+  font-family: var(--rapid-font-family-mono);
+  color: var(--rapid-color-text-secondary);
+  min-width: 24px;
+}
+
+/* ── Typography ────────────────────────────────────────────── */
+.type-stack { display: flex; flex-direction: column; gap: var(--rapid-spacing-sm); }
+.type-row { display: flex; align-items: baseline; gap: var(--rapid-spacing-md); }
+.type-label {
+  font-size: var(--rapid-font-size-xs);
+  font-family: var(--rapid-font-family-mono);
+  color: var(--rapid-color-text-secondary);
+  min-width: 28px;
+}
+
+/* ── Radius Preview ────────────────────────────────────────── */
+.radius-row { display: flex; gap: var(--rapid-spacing-md); flex-wrap: wrap; align-items: end; }
+.radius-sample {
+  width: 48px;
+  height: 48px;
+  background: var(--rapid-color-brand-primary);
+  opacity: 0.7;
+  transition: all .25s;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 4px;
+  font-size: 9px;
+  font-family: var(--rapid-font-family-mono);
+  color: var(--rapid-color-text-on-brand);
+}
+
+/* ── Shadow Preview ────────────────────────────────────────── */
+.shadow-row { display: flex; gap: var(--rapid-spacing-lg); flex-wrap: wrap; }
+.shadow-sample {
+  width: 80px;
+  height: 80px;
+  background: var(--rapid-color-surface-base);
+  border-radius: var(--rapid-radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--rapid-font-size-xs);
+  font-family: var(--rapid-font-family-mono);
+  color: var(--rapid-color-text-secondary);
+  transition: all .25s;
+}
+
+/* ── Nav / Tabs ────────────────────────────────────────────── */
+.tab-row {
+  display: flex;
+  border-bottom: 2px solid var(--rapid-color-border-default);
+  gap: 0;
+}
+
+.tab {
+  padding: var(--rapid-spacing-sm) var(--rapid-spacing-md);
+  font-size: var(--rapid-font-size-sm);
+  font-weight: var(--rapid-font-weight-semibold);
+  color: var(--rapid-color-text-secondary);
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: all .15s;
+  font-family: var(--rapid-font-family-base);
+}
+
+.tab:hover { color: var(--rapid-color-text-primary); }
+.tab.active {
+  color: var(--rapid-color-brand-primary);
+  border-bottom-color: var(--rapid-color-brand-primary);
+}
+
+/* ── Progress ──────────────────────────────────────────────── */
+.progress-track {
+  width: 100%;
+  height: 8px;
+  background: var(--rapid-color-surface-overlay);
+  border-radius: var(--rapid-radius-round);
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  border-radius: var(--rapid-radius-round);
+  transition: width .6s ease, background-color .25s;
+}
+
+/* ── Avatar row ────────────────────────────────────────────── */
+.avatar-row { display: flex; gap: var(--rapid-spacing-sm); align-items: center; }
+.avatar {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: var(--rapid-font-size-sm);
+  font-weight: var(--rapid-font-weight-semibold);
+  color: var(--rapid-color-text-on-brand);
+  flex-shrink: 0;
+}
+
+/* ── Responsive ────────────────────────────────────────────── */
+@media (max-width: 860px) {
+  body { flex-direction: column; }
+  .sidebar {
+    width: 100%;
+    min-width: 0;
+    max-height: 40vh;
+    border-right: none;
+    border-bottom: 1px solid var(--rapid-color-border-default);
+  }
+  .main { padding: var(--rapid-spacing-lg) var(--rapid-spacing-md); }
+  .showcase-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ────────── SIDEBAR ────────── -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div>
+      <div class="sidebar-title">RDS</div>
+      <div class="sidebar-subtitle">Token Control Panel</div>
+    </div>
+    <div class="theme-label">
+      <span id="themeLabel">Light</span>
+      <button class="theme-toggle" role="switch" aria-checked="false" id="themeToggle" title="Toggle dark mode"></button>
+    </div>
+  </div>
+  <div id="editorContainer"></div>
+  <div class="sidebar-actions">
+    <button class="btn-sm" id="resetBtn">Reset</button>
+    <button class="btn-sm primary" id="exportBtn">Export JSON</button>
+  </div>
+</aside>
+
+<!-- ────────── MAIN CONTENT ────────── -->
+<main class="main">
+  <h1 class="page-title">Rapid Design System</h1>
+  <p class="page-subtitle">
+    Adjust the tokens on the left and watch every component below update in real time.
+    Toggle dark mode to see the full theme in action.
+  </p>
+
+  <div class="showcase-grid">
+
+    <!-- Color Palette -->
+    <div class="showcase-section" style="grid-column: 1 / -1;">
+      <div class="section-title">Color Palette</div>
+      <div class="swatch-grid" id="swatchGrid"></div>
+    </div>
+
+    <!-- Buttons -->
+    <div class="showcase-section">
+      <div class="section-title">Buttons</div>
+      <div class="button-row" style="flex-direction:column; align-items:stretch; gap:var(--rapid-spacing-md);">
+        <div class="button-row">
+          <button class="btn btn-primary">Primary</button>
+          <button class="btn btn-outline">Outline</button>
+          <button class="btn btn-ghost">Ghost</button>
+        </div>
+        <div class="button-row">
+          <button class="btn btn-success">Approve</button>
+          <button class="btn btn-danger">Delete</button>
+          <button class="btn btn-primary" disabled style="opacity:.5;cursor:not-allowed">Disabled</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form Controls -->
+    <div class="showcase-section">
+      <div class="section-title">Form Controls</div>
+      <div class="form-stack">
+        <div class="form-field">
+          <label class="form-label">Full name</label>
+          <input class="form-input" type="text" placeholder="Jane Doe">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Department</label>
+          <select class="form-select">
+            <option>Engineering</option>
+            <option>Design</option>
+            <option>Product</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Email</label>
+          <input class="form-input error" type="email" value="invalid-email">
+          <span class="form-hint error">Please enter a valid email address.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cards -->
+    <div class="showcase-section">
+      <div class="section-title">Cards</div>
+      <div class="card-stack">
+        <div class="card">
+          <div class="card-title">Quarterly Report</div>
+          <div class="card-body">Revenue up 12% from last quarter. All KPIs tracking above target.</div>
+          <div class="card-footer">
+            <button class="btn btn-primary" style="padding:4px 12px;font-size:var(--rapid-font-size-sm);">View</button>
+            <button class="btn btn-ghost" style="padding:4px 12px;font-size:var(--rapid-font-size-sm);">Share</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Deployment Status</div>
+          <div class="card-body">
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+              <span>Build v2.4.1</span>
+              <span class="badge badge-success">Live</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" style="width:100%;background:var(--rapid-color-status-success);"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="showcase-section" style="grid-column: 1 / -1;">
+      <div class="section-title">Data Table</div>
+      <table class="data-table">
+        <thead>
+          <tr><th>Name</th><th>Role</th><th>Status</th><th>Last Active</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><div class="avatar-row"><div class="avatar" style="background:var(--rapid-color-brand-primary);">JD</div> Jane Doe</div></td><td>Lead Engineer</td><td><span class="badge badge-success">Active</span></td><td>2 min ago</td></tr>
+          <tr><td><div class="avatar-row"><div class="avatar" style="background:var(--rapid-color-brand-secondary);">AK</div> Alex Kim</div></td><td>Designer</td><td><span class="badge badge-warning">Away</span></td><td>1 hr ago</td></tr>
+          <tr><td><div class="avatar-row"><div class="avatar" style="background:var(--rapid-color-brand-tertiary);">SR</div> Sam Reyes</div></td><td>PM</td><td><span class="badge badge-danger">Offline</span></td><td>3 days ago</td></tr>
+          <tr><td><div class="avatar-row"><div class="avatar" style="background:var(--rapid-color-status-success);">MP</div> Morgan Park</div></td><td>QA Engineer</td><td><span class="badge badge-success">Active</span></td><td>Just now</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Alerts -->
+    <div class="showcase-section">
+      <div class="section-title">Alerts</div>
+      <div style="display:flex;flex-direction:column;gap:var(--rapid-spacing-sm);">
+        <div class="alert alert-success">Changes saved successfully.</div>
+        <div class="alert alert-warning">Your session will expire in 5 minutes.</div>
+        <div class="alert alert-danger">Failed to connect to the server.</div>
+      </div>
+    </div>
+
+    <!-- Tabs + Progress -->
+    <div class="showcase-section">
+      <div class="section-title">Navigation &amp; Progress</div>
+      <div class="tab-row" style="margin-bottom:var(--rapid-spacing-md);">
+        <button class="tab active">Overview</button>
+        <button class="tab">Analytics</button>
+        <button class="tab">Settings</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:var(--rapid-spacing-sm);">
+        <div style="display:flex;justify-content:space-between;font-size:var(--rapid-font-size-sm);">
+          <span>Upload progress</span><span style="color:var(--rapid-color-text-secondary);">68%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" style="width:68%;background:var(--rapid-color-brand-primary);"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:var(--rapid-font-size-sm);">
+          <span>Disk usage</span><span style="color:var(--rapid-color-text-secondary);">91%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" style="width:91%;background:var(--rapid-color-status-warning);"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Typography -->
+    <div class="showcase-section">
+      <div class="section-title">Typography Scale</div>
+      <div class="type-stack">
+        <div class="type-row"><span class="type-label">2xl</span><span style="font-size:var(--rapid-font-size-2xl);font-weight:var(--rapid-font-weight-bold);">Display</span></div>
+        <div class="type-row"><span class="type-label">xl</span><span style="font-size:var(--rapid-font-size-xl);font-weight:var(--rapid-font-weight-semibold);">Heading</span></div>
+        <div class="type-row"><span class="type-label">lg</span><span style="font-size:var(--rapid-font-size-lg);">Title</span></div>
+        <div class="type-row"><span class="type-label">md</span><span style="font-size:var(--rapid-font-size-md);">Body text — the quick brown fox jumps over the lazy dog.</span></div>
+        <div class="type-row"><span class="type-label">sm</span><span style="font-size:var(--rapid-font-size-sm);color:var(--rapid-color-text-secondary);">Caption — secondary detail text</span></div>
+        <div class="type-row"><span class="type-label">xs</span><span style="font-size:var(--rapid-font-size-xs);color:var(--rapid-color-text-secondary);">Overline — metadata label</span></div>
+        <div class="type-row"><span class="type-label">mono</span><span style="font-family:var(--rapid-font-family-mono);font-size:var(--rapid-font-size-sm);">const theme = "rapid";</span></div>
+      </div>
+    </div>
+
+    <!-- Spacing -->
+    <div class="showcase-section">
+      <div class="section-title">Spacing Scale</div>
+      <div class="spacing-stack" id="spacingPreview"></div>
+    </div>
+
+    <!-- Radius -->
+    <div class="showcase-section">
+      <div class="section-title">Border Radius</div>
+      <div class="radius-row" id="radiusPreview"></div>
+    </div>
+
+    <!-- Shadows -->
+    <div class="showcase-section">
+      <div class="section-title">Elevation / Shadow</div>
+      <div class="shadow-row">
+        <div class="shadow-sample" style="box-shadow:var(--rapid-shadow-sm);">sm</div>
+        <div class="shadow-sample" style="box-shadow:var(--rapid-shadow-md);">md</div>
+        <div class="shadow-sample" style="box-shadow:var(--rapid-shadow-lg);">lg</div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+(function() {
+  const root = document.documentElement;
+  const toggle = document.getElementById("themeToggle");
+  const label = document.getElementById("themeLabel");
+  const container = document.getElementById("editorContainer");
+
+  const lightTokens = {
+    "--rapid-color-brand-primary":"#0f6cbd","--rapid-color-brand-secondary":"#115ea3",
+    "--rapid-color-brand-tertiary":"#0078d4","--rapid-color-surface-base":"#ffffff",
+    "--rapid-color-surface-raised":"#fafafa","--rapid-color-surface-overlay":"#f5f5f5",
+    "--rapid-color-text-primary":"#242424","--rapid-color-text-secondary":"#616161",
+    "--rapid-color-text-on-brand":"#ffffff","--rapid-color-border-default":"#d1d1d1",
+    "--rapid-color-border-strong":"#ababab","--rapid-color-status-success":"#0e7a0d",
+    "--rapid-color-status-warning":"#f7630c","--rapid-color-status-danger":"#b10e1c"
+  };
+  const darkTokens = {
+    "--rapid-color-brand-primary":"#479ef5","--rapid-color-brand-secondary":"#62abf5",
+    "--rapid-color-brand-tertiary":"#2886de","--rapid-color-surface-base":"#1b1b1b",
+    "--rapid-color-surface-raised":"#2d2d2d","--rapid-color-surface-overlay":"#383838",
+    "--rapid-color-text-primary":"#e0e0e0","--rapid-color-text-secondary":"#adadad",
+    "--rapid-color-text-on-brand":"#ffffff","--rapid-color-border-default":"#484848",
+    "--rapid-color-border-strong":"#6a6a6a","--rapid-color-status-success":"#54b054",
+    "--rapid-color-status-warning":"#f98845","--rapid-color-status-danger":"#e34e5e"
+  };
+
+  const spacingTokens = {xs:"4px",sm:"8px",md:"16px",lg:"24px",xl:"32px","2xl":"48px"};
+  const radiusTokens = {sm:"2px",md:"4px",lg:"8px",xl:"12px",round:"9999px"};
+
+  const editorGroups = {
+    "Brand": [["--rapid-color-brand-primary","Primary"],["--rapid-color-brand-secondary","Secondary"],["--rapid-color-brand-tertiary","Tertiary"]],
+    "Surfaces": [["--rapid-color-surface-base","Base"],["--rapid-color-surface-raised","Raised"],["--rapid-color-surface-overlay","Overlay"]],
+    "Text": [["--rapid-color-text-primary","Primary"],["--rapid-color-text-secondary","Secondary"],["--rapid-color-text-on-brand","On Brand"]],
+    "Borders": [["--rapid-color-border-default","Default"],["--rapid-color-border-strong","Strong"]],
+    "Status": [["--rapid-color-status-success","Success"],["--rapid-color-status-warning","Warning"],["--rapid-color-status-danger","Danger"]]
+  };
+
+  let isDark = false;
+  let userOverrides = {};
+
+  function getCurrentDefaults() { return isDark ? darkTokens : lightTokens; }
+
+  function applyToken(prop, val) {
+    root.style.setProperty(prop, val);
+    const input = document.querySelector(`[data-token="${prop}"] input[type="color"]`);
+    const text = document.querySelector(`[data-token="${prop}"] input[type="text"]`);
+    if (input) input.value = val;
+    if (text) text.value = val;
+  }
+
+  function applyAllDefaults() {
+    const defs = getCurrentDefaults();
+    for (const [prop, val] of Object.entries(defs)) {
+      const effective = userOverrides[prop] ?? val;
+      applyToken(prop, effective);
+    }
+  }
+
+  function buildEditor() {
+    container.innerHTML = "";
+    const defs = getCurrentDefaults();
+    for (const [group, tokens] of Object.entries(editorGroups)) {
+      const section = document.createElement("div");
+      section.className = "editor-group";
+      section.innerHTML = `<div class="editor-group-title">${group}</div>`;
+      for (const [prop, label] of tokens) {
+        const val = userOverrides[prop] ?? defs[prop];
+        const row = document.createElement("div");
+        row.className = "token-row";
+        row.setAttribute("data-token", prop);
+        row.innerHTML = `
+          <span class="token-label">${label}</span>
+          <input type="color" class="token-color-input" value="${val}">
+          <input type="text" class="token-text-input" value="${val}" spellcheck="false">
+        `;
+        const colorInput = row.querySelector('input[type="color"]');
+        const textInput = row.querySelector('input[type="text"]');
+        colorInput.addEventListener("input", (e) => {
+          const v = e.target.value;
+          textInput.value = v;
+          root.style.setProperty(prop, v);
+          userOverrides[prop] = v;
+        });
+        textInput.addEventListener("input", (e) => {
+          const v = e.target.value;
+          if (/^#[0-9a-fA-F]{6}$/.test(v)) {
+            colorInput.value = v;
+            root.style.setProperty(prop, v);
+            userOverrides[prop] = v;
+          }
+        });
+        section.appendChild(row);
+      }
+      container.appendChild(section);
+    }
+  }
+
+  // Theme toggle
+  toggle.addEventListener("click", () => {
+    isDark = !isDark;
+    toggle.setAttribute("aria-checked", isDark);
+    label.textContent = isDark ? "Dark" : "Light";
+    if (isDark) root.setAttribute("data-theme", "dark");
+    else root.removeAttribute("data-theme");
+    applyAllDefaults();
+    buildEditor();
+  });
+
+  // Reset
+  document.getElementById("resetBtn").addEventListener("click", () => {
+    userOverrides = {};
+    for (const prop of Object.keys(lightTokens)) root.style.removeProperty(prop);
+    applyAllDefaults();
+    buildEditor();
+  });
+
+  // Export
+  document.getElementById("exportBtn").addEventListener("click", () => {
+    const defs = getCurrentDefaults();
+    const result = {};
+    for (const prop of Object.keys(defs)) {
+      result[prop] = userOverrides[prop] ?? defs[prop];
+    }
+    const json = JSON.stringify(result, null, 2);
+    const blob = new Blob([json], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = isDark ? "rapid-tokens-dark.json" : "rapid-tokens-light.json";
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  // Swatches
+  (function renderSwatches() {
+    const grid = document.getElementById("swatchGrid");
+    const swatches = [
+      ["Brand Primary","--rapid-color-brand-primary"],
+      ["Brand Secondary","--rapid-color-brand-secondary"],
+      ["Brand Tertiary","--rapid-color-brand-tertiary"],
+      ["Surface Base","--rapid-color-surface-base"],
+      ["Surface Raised","--rapid-color-surface-raised"],
+      ["Surface Overlay","--rapid-color-surface-overlay"],
+      ["Text Primary","--rapid-color-text-primary"],
+      ["Text Secondary","--rapid-color-text-secondary"],
+      ["On Brand","--rapid-color-text-on-brand"],
+      ["Border Default","--rapid-color-border-default"],
+      ["Border Strong","--rapid-color-border-strong"],
+      ["Success","--rapid-color-status-success"],
+      ["Warning","--rapid-color-status-warning"],
+      ["Danger","--rapid-color-status-danger"]
+    ];
+    for (const [name, prop] of swatches) {
+      const div = document.createElement("div");
+      div.className = "swatch";
+      div.style.background = `var(${prop})`;
+      div.textContent = name.split(" ").pop();
+      grid.appendChild(div);
+    }
+  })();
+
+  // Spacing preview
+  (function renderSpacing() {
+    const el = document.getElementById("spacingPreview");
+    for (const [key, val] of Object.entries(spacingTokens)) {
+      const row = document.createElement("div");
+      row.className = "spacing-bar-row";
+      row.innerHTML = `
+        <span class="spacing-bar-label">${key}</span>
+        <div class="spacing-bar" style="width:var(--rapid-spacing-${key});"></div>
+        <span class="spacing-bar-label" style="min-width:40px;">${val}</span>
+      `;
+      el.appendChild(row);
+    }
+  })();
+
+  // Radius preview
+  (function renderRadius() {
+    const el = document.getElementById("radiusPreview");
+    for (const [key, val] of Object.entries(radiusTokens)) {
+      const div = document.createElement("div");
+      div.className = "radius-sample";
+      div.style.borderRadius = `var(--rapid-radius-${key})`;
+      div.textContent = key;
+      el.appendChild(div);
+    }
+  })();
+
+  // Tab interactivity
+  document.querySelectorAll(".tab-row").forEach((row) => {
+    row.addEventListener("click", (e) => {
+      if (e.target.classList.contains("tab")) {
+        row.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+        e.target.classList.add("active");
+      }
+    });
+  });
+
+  // Initial render
+  buildEditor();
+  applyAllDefaults();
+})();
+</script>
+</body>
+</html>
