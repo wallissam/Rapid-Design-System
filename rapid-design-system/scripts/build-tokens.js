@@ -6,9 +6,16 @@
  * Single entry point that reads the canonical JSON token files and
  * emits every downstream artefact from a single `npm run build`.
  *
+ * Extensibility:
+ *   If tokens/local.json exists, it is deep-merged ON TOP of base.json.
+ *   If tokens/local-dark.json exists, it is deep-merged ON TOP of dark.json.
+ *   This lets consumers override standard values or add entirely new tokens
+ *   without touching base.json.  See tokens/local.example.json for patterns.
+ *
  * Core outputs:
  *   • packages/css/global.css             – :root + [data-theme="dark"] custom properties
  *   • packages/css/utilities.css          – .rapid-* utility classes
+ *   • packages/css/scoped-overrides.css   – Template for CSS-level scoping (meant to be copied + edited)
  *   • packages/fluent-adapter/index.ts       – Fluent UI v9 theme object → CSS var() refs
  *   • packages/fluent-adapter/Provider.tsx    – <RapidFluentProvider> wrapper (v9)
  *   • packages/fluent-v8-adapter/index.ts     – Fluent UI v8 theme: IPalette + ISemanticColors + IEffects + IFontStyles
@@ -60,13 +67,63 @@ function readJSON(filePath) {
   return JSON.parse(fs.readFileSync(filePath, "utf-8"));
 }
 
+function readJSONIfExists(filePath) {
+  if (fs.existsSync(filePath)) {
+    const content = readJSON(filePath);
+    if (content && typeof content === "object" && Object.keys(content).length > 0) {
+      return content;
+    }
+  }
+  return null;
+}
+
 function ensureDir(dir) {
   fs.mkdirSync(dir, { recursive: true });
+}
+
+/**
+ * Recursively merge `source` onto `target`.  Leaf values in `source`
+ * override `target`.  New branches in `source` are added.  `target`
+ * keys not present in `source` are preserved.
+ */
+function deepMerge(target, source) {
+  const result = { ...target };
+  for (const [key, val] of Object.entries(source)) {
+    if (key === "_comment") continue;
+    if (
+      typeof val === "object" && val !== null && !Array.isArray(val) &&
+      typeof result[key] === "object" && result[key] !== null && !Array.isArray(result[key])
+    ) {
+      result[key] = deepMerge(result[key], val);
+    } else {
+      result[key] = val;
+    }
+  }
+  return result;
+}
+
+/**
+ * Compare two flattened token sets and report what changed.
+ * Returns { overrides: [...], extensions: [...] }
+ */
+function diffTokens(baseFlatKeys, mergedFlatKeys) {
+  const baseSet = new Set(baseFlatKeys);
+  const overrides = [];
+  const extensions = [];
+  for (const key of mergedFlatKeys) {
+    if (baseSet.has(key)) {
+      // exists in base — could be overridden (we check value later)
+    } else {
+      extensions.push(key);
+    }
+  }
+  return { extensions };
 }
 
 function flatten(obj, parentKey = "") {
   const entries = [];
   for (const [key, value] of Object.entries(obj)) {
+    if (key === "_comment") continue;
     const fullKey = parentKey ? `${parentKey}-${key}` : key;
     if (typeof value === "object" && value !== null && !Array.isArray(value)) {
       entries.push(...flatten(value, fullKey));
@@ -103,6 +160,47 @@ function emit(filePath, content, label) {
   fs.writeFileSync(filePath, content);
   const rel = path.relative(ROOT, filePath);
   console.log(`[RDS] ✓ ${rel}`);
+}
+
+/**
+ * Load and merge optional local token files onto the canonical tokens.
+ * Returns { tokens, dark, stats } where stats describes what was merged.
+ */
+function loadAndMergeTokens() {
+  const baseTokens = readJSON(path.join(TOKENS_DIR, "base.json"));
+  const darkTokens = readJSON(path.join(TOKENS_DIR, "dark.json"));
+
+  const localPath = path.join(TOKENS_DIR, "local.json");
+  const localDarkPath = path.join(TOKENS_DIR, "local-dark.json");
+  const local = readJSONIfExists(localPath);
+  const localDark = readJSONIfExists(localDarkPath);
+
+  const baseFlatKeys = flatten(baseTokens).map(([k]) => k);
+  const darkFlatKeys = flatten(darkTokens).map(([k]) => k);
+
+  let mergedBase = baseTokens;
+  let mergedDark = darkTokens;
+  const stats = { localLoaded: false, localDarkLoaded: false, overrides: 0, extensions: 0 };
+
+  if (local) {
+    mergedBase = deepMerge(baseTokens, local);
+    stats.localLoaded = true;
+
+    const mergedFlatKeys = flatten(mergedBase).map(([k]) => k);
+    const localFlatKeys = flatten(local).map(([k]) => k);
+    const baseSet = new Set(baseFlatKeys);
+    for (const k of localFlatKeys) {
+      if (baseSet.has(k)) stats.overrides++;
+      else stats.extensions++;
+    }
+  }
+
+  if (localDark) {
+    mergedDark = deepMerge(darkTokens, localDark);
+    stats.localDarkLoaded = true;
+  }
+
+  return { tokens: mergedBase, dark: mergedDark, stats };
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -182,6 +280,136 @@ function buildUtilitiesCSS(baseTokens) {
     lines.push(`.${PREFIX}-font-${slug} { font-weight: var(${toCSSVar(key)}); }`);
   }
   lines.push("");
+
+  return lines.join("\n") + "\n";
+}
+
+// ---------------------------------------------------------------------------
+// scoped-overrides.css — Template for CSS-level extensibility
+// ---------------------------------------------------------------------------
+
+function buildScopedOverridesCSS(baseTokens) {
+  const allEntries = flatten(baseTokens);
+
+  const lines = [
+    fileHeader("Scoped Overrides Template", [
+      "Copy this file into your project and customise it.",
+      "Unlike other generated files, THIS ONE is meant to be edited.",
+      "",
+      "Three extensibility patterns are demonstrated below:",
+      "  1. Product / section-level brand overrides",
+      "  2. Component-level micro-scoping",
+      "  3. User-preference / media-query overrides",
+      "",
+      "CSS custom property inheritance means children automatically",
+      "pick up the closest ancestor's value — no rebuild required.",
+    ]),
+    "",
+    "/* ─── 1. Product / Section Overrides ────────────────────────── */",
+    "/*",
+    " * Apply to any container element via class or data attribute.",
+    " * Everything inside inherits the override, including all Rapid",
+    " * utility classes and every adapter (Fluent, AG Grid, etc.).",
+    " *",
+    " *   <div class=\"rapid-scope-billing\">",
+    " *     <FluentProvider ...>  ← automatically picks up #0e7a0d",
+    " *   </div>",
+    " */",
+    "",
+    "/*",
+    ".rapid-scope-billing {",
+    "  --rapid-color-brand-primary: #0e7a0d;",
+    "  --rapid-color-brand-secondary: #0b6b0b;",
+    "  --rapid-color-brand-tertiary: #094509;",
+    "}",
+    "",
+    ".rapid-scope-marketing {",
+    "  --rapid-color-brand-primary: #e74c3c;",
+    "  --rapid-color-brand-secondary: #c0392b;",
+    "  --rapid-color-brand-tertiary: #a93226;",
+    "}",
+    "*/",
+    "",
+    "/* ─── 2. Component-Level Micro-Scoping ─────────────────────── */",
+    "/*",
+    " * Override tokens for a specific component instance using a",
+    " * data attribute.  Useful for one-off visual tweaks.",
+    " *",
+    " *   <div data-rapid-surface=\"elevated\">",
+    " *     This panel has different surface + shadow tokens.",
+    " *   </div>",
+    " */",
+    "",
+    "/*",
+    "[data-rapid-surface=\"elevated\"] {",
+    "  --rapid-color-surface-base: var(--rapid-color-surface-raised);",
+    "  --rapid-shadow-md: var(--rapid-shadow-lg);",
+    "}",
+    "*/",
+    "",
+    "/* ─── 3. User-Preference / Media Overrides ──────────────────── */",
+    "/*",
+    " * Respond to system-level preferences without JS.  These compose",
+    " * with data-theme — they only fire when no explicit theme is set.",
+    " */",
+    "",
+    "/*",
+    "@media (prefers-color-scheme: dark) {",
+    "  :root:not([data-theme]) {",
+    "    --rapid-color-brand-primary: #479ef5;",
+    "    --rapid-color-surface-base: #1b1b1b;",
+    "    --rapid-color-surface-raised: #2d2d2d;",
+    "    --rapid-color-surface-overlay: #383838;",
+    "    --rapid-color-text-primary: #e0e0e0;",
+    "    --rapid-color-text-secondary: #adadad;",
+    "    --rapid-color-border-default: #484848;",
+    "  }",
+    "}",
+    "",
+    "@media (prefers-contrast: more) {",
+    "  :root {",
+    "    --rapid-color-text-primary: #000000;",
+    "    --rapid-color-text-secondary: #333333;",
+    "    --rapid-color-border-default: #000000;",
+    "    --rapid-color-border-strong: #000000;",
+    "  }",
+    "",
+    "  [data-theme=\"dark\"] {",
+    "    --rapid-color-text-primary: #ffffff;",
+    "    --rapid-color-text-secondary: #cccccc;",
+    "    --rapid-color-border-default: #ffffff;",
+    "    --rapid-color-border-strong: #ffffff;",
+    "  }",
+    "}",
+    "*/",
+    "",
+    "/* ─── 4. Custom Token Extensions ──────────────────────────── */",
+    "/*",
+    " * If you added custom tokens via tokens/local.json, their CSS",
+    " * variables are already generated in global.css.  You can also",
+    " * define entirely new tokens here without touching the build.",
+    " *",
+    " * Convention: keep the --rapid- prefix so all adapters and",
+    " * the _css-vars-bridge.ts utility can read them.",
+    " */",
+    "",
+    "/*",
+    ":root {",
+    "  --rapid-color-accent-coral: #ff6b6b;",
+    "  --rapid-color-accent-teal: #2ec4b6;",
+    "  --rapid-duration-fast: 150ms;",
+    "  --rapid-duration-normal: 300ms;",
+    "  --rapid-z-dropdown: 1000;",
+    "  --rapid-z-modal: 1400;",
+    "}",
+    "",
+    "[data-theme=\"dark\"] {",
+    "  --rapid-color-accent-coral: #ff8a8a;",
+    "  --rapid-color-accent-teal: #5de8d8;",
+    "}",
+    "*/",
+    "",
+  ];
 
   return lines.join("\n") + "\n";
 }
@@ -1855,8 +2083,18 @@ module.exports = ${JSON.stringify(preset, null, 2)};
 function main() {
   console.log("[RDS] Reading token sources…\n");
 
-  const baseTokens = readJSON(path.join(TOKENS_DIR, "base.json"));
-  const darkTokens = readJSON(path.join(TOKENS_DIR, "dark.json"));
+  const { tokens: baseTokens, dark: darkTokens, stats } = loadAndMergeTokens();
+
+  if (stats.localLoaded || stats.localDarkLoaded) {
+    console.log("  Local token files:");
+    if (stats.localLoaded) {
+      console.log(`  ✓ tokens/local.json loaded (${stats.overrides} override(s), ${stats.extensions} extension(s))`);
+    }
+    if (stats.localDarkLoaded) {
+      console.log(`  ✓ tokens/local-dark.json loaded`);
+    }
+    console.log("");
+  }
 
   ensureDir(CSS_DIR);
   ensureDir(FLUENT_DIR);
@@ -1867,6 +2105,7 @@ function main() {
   console.log("  Core outputs:");
   emit(path.join(CSS_DIR, "global.css"), buildGlobalCSS(baseTokens, darkTokens));
   emit(path.join(CSS_DIR, "utilities.css"), buildUtilitiesCSS(baseTokens));
+  emit(path.join(CSS_DIR, "scoped-overrides.css"), buildScopedOverridesCSS(baseTokens));
 
   // ── Fluent UI v9 ──────────────────────────────────────────────────────
   console.log("\n  Fluent UI v9 Adapter:");
@@ -1908,7 +2147,7 @@ function main() {
   console.log("\n  Config Presets:");
   emit(path.join(ADAPTERS_DIR, "tailwind-preset.js"), buildTailwindPreset(baseTokens));
 
-  console.log("\n[RDS] Build complete — 21 artefacts generated.\n");
+  console.log("\n[RDS] Build complete — 22 artefacts generated.\n");
 }
 
 main();

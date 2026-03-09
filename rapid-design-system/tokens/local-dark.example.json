@@ -1,0 +1,18 @@
+{
+  "_comment": [
+    "Copy this file to tokens/local-dark.json to provide dark mode",
+    "values for your custom tokens.  Only include tokens that differ",
+    "from local.json — everything else inherits the light value."
+  ],
+
+  "color": {
+    "accent": {
+      "coral": "#ff8a8a",
+      "teal": "#5de8d8",
+      "gold": "#f9e076"
+    },
+    "status": {
+      "info": "#5dade2"
+    }
+  }
+}
