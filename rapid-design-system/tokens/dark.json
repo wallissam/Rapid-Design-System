@@ -8,18 +8,26 @@
     "surface": {
       "base": "#1b1b1b",
       "raised": "#2d2d2d",
-      "overlay": "#383838"
+      "overlay": "#383838",
+      "disabled": "#2a2a2a"
     },
     "text": {
       "primary": "#e0e0e0",
       "secondary": "#adadad",
-      "on-brand": "#ffffff"
+      "disabled": "#5c5c5c",
+      "on-brand": "#ffffff",
+      "link": "#479ef5",
+      "link-hover": "#62abf5"
     },
     "border": {
       "default": "#484848",
       "strong": "#6a6a6a"
     },
+    "focus": {
+      "ring": "#479ef5"
+    },
     "status": {
+      "info": "#479ef5",
       "success": "#54b054",
       "warning": "#f98845",
       "danger": "#e34e5e"

@@ -439,6 +439,7 @@ body { display: flex; min-height: 100vh; }
 .badge-success { background: var(--rapid-color-status-success); color: #fff; }
 .badge-warning { background: var(--rapid-color-status-warning); color: #fff; }
 .badge-danger { background: var(--rapid-color-status-danger); color: #fff; }
+.badge-info { background: var(--rapid-color-status-info); color: #fff; }
 .badge-brand { background: var(--rapid-color-brand-primary); color: var(--rapid-color-text-on-brand); }
 
 /* ── Alert / Toast ─────────────────────────────────────────── */
@@ -647,7 +648,7 @@ body { display: flex; min-height: 100vh; }
         <div class="button-row">
           <button class="btn btn-success">Approve</button>
           <button class="btn btn-danger">Delete</button>
-          <button class="btn btn-primary" disabled style="opacity:.5;cursor:not-allowed">Disabled</button>
+          <button class="btn btn-primary" disabled style="opacity:var(--rapid-opacity-disabled);cursor:not-allowed">Disabled</button>
         </div>
       </div>
     </div>
@@ -672,6 +673,25 @@ body { display: flex; min-height: 100vh; }
           <label class="form-label">Email</label>
           <input class="form-input error" type="email" value="invalid-email">
           <span class="form-hint error">Please enter a valid email address.</span>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Notes</label>
+          <input class="form-input" type="text" value="Read-only field" disabled style="opacity:var(--rapid-opacity-disabled);cursor:not-allowed;background:var(--rapid-color-surface-disabled);">
+          <span class="form-hint">This field is disabled.</span>
+        </div>
+        <div style="display:flex;gap:var(--rapid-spacing-lg);flex-wrap:wrap;">
+          <div class="form-field">
+            <span class="form-label">Role</span>
+            <label style="display:flex;align-items:center;gap:var(--rapid-spacing-xs);font-size:var(--rapid-font-size-sm);cursor:pointer;"><input type="radio" name="role" checked style="accent-color:var(--rapid-color-brand-primary);"> Admin</label>
+            <label style="display:flex;align-items:center;gap:var(--rapid-spacing-xs);font-size:var(--rapid-font-size-sm);cursor:pointer;"><input type="radio" name="role" style="accent-color:var(--rapid-color-brand-primary);"> Editor</label>
+            <label style="display:flex;align-items:center;gap:var(--rapid-spacing-xs);font-size:var(--rapid-font-size-sm);cursor:pointer;"><input type="radio" name="role" style="accent-color:var(--rapid-color-brand-primary);"> Viewer</label>
+          </div>
+          <div class="form-field">
+            <span class="form-label">Preferences</span>
+            <label style="display:flex;align-items:center;gap:var(--rapid-spacing-xs);font-size:var(--rapid-font-size-sm);cursor:pointer;"><input type="checkbox" checked style="accent-color:var(--rapid-color-brand-primary);"> Email notifications</label>
+            <label style="display:flex;align-items:center;gap:var(--rapid-spacing-xs);font-size:var(--rapid-font-size-sm);cursor:pointer;"><input type="checkbox" style="accent-color:var(--rapid-color-brand-primary);"> Slack alerts</label>
+            <label style="display:flex;align-items:center;gap:var(--rapid-spacing-xs);font-size:var(--rapid-font-size-sm);cursor:pointer;"><input type="checkbox" disabled style="opacity:var(--rapid-opacity-disabled);"> SMS (unavailable)</label>
+          </div>
         </div>
       </div>
     </div>
@@ -723,6 +743,7 @@ body { display: flex; min-height: 100vh; }
     <div class="showcase-section">
       <div class="section-title">Alerts</div>
       <div style="display:flex;flex-direction:column;gap:var(--rapid-spacing-sm);">
+        <div class="alert" style="background:color-mix(in srgb, var(--rapid-color-status-info) 10%, var(--rapid-color-surface-base));border-color:var(--rapid-color-status-info);color:var(--rapid-color-status-info);">New version available — review the changelog.</div>
         <div class="alert alert-success">Changes saved successfully.</div>
         <div class="alert alert-warning">Your session will expire in 5 minutes.</div>
         <div class="alert alert-danger">Failed to connect to the server.</div>

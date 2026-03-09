@@ -32,18 +32,26 @@ module.exports = {
         "surface": {
           "base": "var(--rapid-color-surface-base)",
           "raised": "var(--rapid-color-surface-raised)",
-          "overlay": "var(--rapid-color-surface-overlay)"
+          "overlay": "var(--rapid-color-surface-overlay)",
+          "disabled": "var(--rapid-color-surface-disabled)"
         },
         "text": {
           "primary": "var(--rapid-color-text-primary)",
           "secondary": "var(--rapid-color-text-secondary)",
-          "on-brand": "var(--rapid-color-text-on-brand)"
+          "disabled": "var(--rapid-color-text-disabled)",
+          "on-brand": "var(--rapid-color-text-on-brand)",
+          "link": "var(--rapid-color-text-link)",
+          "link-hover": "var(--rapid-color-text-link-hover)"
         },
         "border": {
           "default": "var(--rapid-color-border-default)",
           "strong": "var(--rapid-color-border-strong)"
         },
+        "focus": {
+          "ring": "var(--rapid-color-focus-ring)"
+        },
         "status": {
+          "info": "var(--rapid-color-status-info)",
           "success": "var(--rapid-color-status-success)",
           "warning": "var(--rapid-color-status-warning)",
           "danger": "var(--rapid-color-status-danger)"
@@ -72,15 +80,51 @@ module.exports = {
         "xl": "var(--rapid-font-size-xl)",
         "2xl": "var(--rapid-font-size-2xl)"
       },
+      "fontWeight": {
+        "regular": "var(--rapid-font-weight-regular)",
+        "semibold": "var(--rapid-font-weight-semibold)",
+        "bold": "var(--rapid-font-weight-bold)"
+      },
       "fontFamily": {
-        "sans": "var(--rapid-font-family-base)",
-        "mono": "var(--rapid-font-family-mono)"
+        "sans": [
+          "var(--rapid-font-family-base)"
+        ],
+        "mono": [
+          "var(--rapid-font-family-mono)"
+        ]
+      },
+      "lineHeight": {
+        "tight": "var(--rapid-font-line-height-tight)",
+        "normal": "var(--rapid-font-line-height-normal)",
+        "relaxed": "var(--rapid-font-line-height-relaxed)"
+      },
+      "letterSpacing": {
+        "tight": "var(--rapid-font-letter-spacing-tight)",
+        "normal": "var(--rapid-font-letter-spacing-normal)",
+        "wide": "var(--rapid-font-letter-spacing-wide)"
       },
       "boxShadow": {
         "sm": "var(--rapid-shadow-sm)",
         "DEFAULT": "var(--rapid-shadow-md)",
         "md": "var(--rapid-shadow-md)",
         "lg": "var(--rapid-shadow-lg)"
+      },
+      "opacity": {
+        "disabled": "var(--rapid-opacity-disabled)",
+        "hover": "var(--rapid-opacity-hover)",
+        "subtle": "var(--rapid-opacity-subtle)"
+      },
+      "zIndex": {
+        "dropdown": "var(--rapid-z-dropdown)",
+        "sticky": "var(--rapid-z-sticky)",
+        "overlay": "var(--rapid-z-overlay)",
+        "modal": "var(--rapid-z-modal)",
+        "toast": "var(--rapid-z-toast)"
+      },
+      "transitionDuration": {
+        "fast": "var(--rapid-duration-fast)",
+        "normal": "var(--rapid-duration-normal)",
+        "slow": "var(--rapid-duration-slow)"
       }
     }
   }

@@ -37,8 +37,8 @@
   --ag-secondary-border-color: var(--rapid-color-border-strong);
 
   /* --- Selection & Focus --- */
-  --ag-selected-row-background-color: var(--rapid-color-brand-primary);
-  --ag-range-selection-background-color: var(--rapid-color-brand-primary);
+  --ag-selected-row-background-color: color-mix(in srgb, var(--rapid-color-brand-primary) 15%, var(--rapid-color-surface-base));
+  --ag-range-selection-background-color: color-mix(in srgb, var(--rapid-color-brand-primary) 15%, var(--rapid-color-surface-base));
   --ag-range-selection-border-color: var(--rapid-color-brand-secondary);
   --ag-input-focus-border-color: var(--rapid-color-brand-primary);
   --ag-checkbox-checked-color: var(--rapid-color-brand-primary);

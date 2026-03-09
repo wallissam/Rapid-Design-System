@@ -24,7 +24,9 @@
     "pcf"
   ],
 
-  "main": "./packages/css/global.css",
+  "sideEffects": [
+    "*.css"
+  ],
 
   "exports": {
     ".": "./packages/css/global.css",
@@ -58,7 +60,8 @@
     "packages/",
     "tokens/base.json",
     "tokens/dark.json",
-    "LICENSE"
+    "LICENSE",
+    "README.md"
   ],
 
   "scripts": {

@@ -13,8 +13,12 @@
   /* --- Brand / Action --- */
   --bs-primary: var(--rapid-color-brand-primary);
   --bs-primary-rgb: none;
-  --bs-link-color: var(--rapid-color-brand-primary);
-  --bs-link-hover-color: var(--rapid-color-brand-secondary);
+  --bs-secondary: var(--rapid-color-brand-secondary);
+  --bs-info: var(--rapid-color-status-info);
+  --bs-light: var(--rapid-color-surface-raised);
+  --bs-dark: var(--rapid-color-text-primary);
+  --bs-link-color: var(--rapid-color-text-link);
+  --bs-link-hover-color: var(--rapid-color-text-link-hover);
 
   /* --- Surfaces --- */
   --bs-body-bg: var(--rapid-color-surface-base);

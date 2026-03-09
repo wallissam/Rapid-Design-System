@@ -280,46 +280,107 @@ function buildGlobalCSS(baseTokens, darkTokens) {
 function buildUtilitiesCSS(baseTokens) {
   const lines = [fileHeader("Utility Classes"), ""];
 
+  // --- Colors: bg, text (foreground), border ---
+  lines.push("/* Colors */");
   const colorEntries = flatten(baseTokens.color || {}, "color");
   for (const [key] of colorEntries) {
     const varRef = `var(${toCSSVar(key)})`;
     const slug = key.replace(/^color-/, "");
+    // Avoid double-prefix: "text-primary" not "text-text-primary"
+    const textSlug = slug.startsWith("text-") ? slug.replace(/^text-/, "") : slug;
     lines.push(`.${PREFIX}-bg-${slug} { background-color: ${varRef}; }`);
-    lines.push(`.${PREFIX}-text-${slug} { color: ${varRef}; }`);
+    lines.push(`.${PREFIX}-text-${textSlug} { color: ${varRef}; }`);
+    lines.push(`.${PREFIX}-border-${slug} { border-color: ${varRef}; }`);
   }
   lines.push("");
 
+  // --- Spacing: all-sides, directional, gap ---
+  lines.push("/* Spacing */");
   const spacingEntries = flatten(baseTokens.spacing || {}, "spacing");
   for (const [key] of spacingEntries) {
     const varRef = `var(${toCSSVar(key)})`;
-    const slug = key.replace(/^spacing-/, "");
-    lines.push(`.${PREFIX}-p-${slug} { padding: ${varRef}; }`);
-    lines.push(`.${PREFIX}-m-${slug} { margin: ${varRef}; }`);
-    lines.push(`.${PREFIX}-gap-${slug} { gap: ${varRef}; }`);
+    const s = key.replace(/^spacing-/, "");
+    lines.push(`.${PREFIX}-p-${s} { padding: ${varRef}; }`);
+    lines.push(`.${PREFIX}-px-${s} { padding-inline: ${varRef}; }`);
+    lines.push(`.${PREFIX}-py-${s} { padding-block: ${varRef}; }`);
+    lines.push(`.${PREFIX}-pt-${s} { padding-top: ${varRef}; }`);
+    lines.push(`.${PREFIX}-pr-${s} { padding-right: ${varRef}; }`);
+    lines.push(`.${PREFIX}-pb-${s} { padding-bottom: ${varRef}; }`);
+    lines.push(`.${PREFIX}-pl-${s} { padding-left: ${varRef}; }`);
+    lines.push(`.${PREFIX}-m-${s} { margin: ${varRef}; }`);
+    lines.push(`.${PREFIX}-mx-${s} { margin-inline: ${varRef}; }`);
+    lines.push(`.${PREFIX}-my-${s} { margin-block: ${varRef}; }`);
+    lines.push(`.${PREFIX}-mt-${s} { margin-top: ${varRef}; }`);
+    lines.push(`.${PREFIX}-mr-${s} { margin-right: ${varRef}; }`);
+    lines.push(`.${PREFIX}-mb-${s} { margin-bottom: ${varRef}; }`);
+    lines.push(`.${PREFIX}-ml-${s} { margin-left: ${varRef}; }`);
+    lines.push(`.${PREFIX}-gap-${s} { gap: ${varRef}; }`);
   }
   lines.push("");
 
+  // --- Border radius ---
+  lines.push("/* Border radius */");
   for (const [key] of flatten(baseTokens.radius || {}, "radius")) {
     const slug = key.replace(/^radius-/, "");
     lines.push(`.${PREFIX}-rounded-${slug} { border-radius: var(${toCSSVar(key)}); }`);
   }
   lines.push("");
 
+  // --- Shadow ---
+  lines.push("/* Shadow */");
   for (const [key] of flatten(baseTokens.shadow || {}, "shadow")) {
     const slug = key.replace(/^shadow-/, "");
     lines.push(`.${PREFIX}-shadow-${slug} { box-shadow: var(${toCSSVar(key)}); }`);
   }
   lines.push("");
 
+  // --- Typography ---
+  lines.push("/* Typography */");
   for (const [key] of flatten(baseTokens.font?.size || {}, "font-size")) {
     const slug = key.replace(/^font-size-/, "");
     lines.push(`.${PREFIX}-text-size-${slug} { font-size: var(${toCSSVar(key)}); }`);
   }
-
   for (const [key] of flatten(baseTokens.font?.weight || {}, "font-weight")) {
     const slug = key.replace(/^font-weight-/, "");
     lines.push(`.${PREFIX}-font-${slug} { font-weight: var(${toCSSVar(key)}); }`);
   }
+  for (const [key] of flatten(baseTokens.font?.["line-height"] || {}, "font-line-height")) {
+    const slug = key.replace(/^font-line-height-/, "");
+    lines.push(`.${PREFIX}-leading-${slug} { line-height: var(${toCSSVar(key)}); }`);
+  }
+  for (const [key] of flatten(baseTokens.font?.["letter-spacing"] || {}, "font-letter-spacing")) {
+    const slug = key.replace(/^font-letter-spacing-/, "");
+    lines.push(`.${PREFIX}-tracking-${slug} { letter-spacing: var(${toCSSVar(key)}); }`);
+  }
+  lines.push("");
+
+  // --- Opacity ---
+  lines.push("/* Opacity */");
+  for (const [key] of flatten(baseTokens.opacity || {}, "opacity")) {
+    const slug = key.replace(/^opacity-/, "");
+    lines.push(`.${PREFIX}-opacity-${slug} { opacity: var(${toCSSVar(key)}); }`);
+  }
+  lines.push("");
+
+  // --- Z-index ---
+  lines.push("/* Z-index */");
+  for (const [key] of flatten(baseTokens.z || {}, "z")) {
+    const slug = key.replace(/^z-/, "");
+    lines.push(`.${PREFIX}-z-${slug} { z-index: var(${toCSSVar(key)}); }`);
+  }
+  lines.push("");
+
+  // --- Duration ---
+  lines.push("/* Transition duration */");
+  for (const [key] of flatten(baseTokens.duration || {}, "duration")) {
+    const slug = key.replace(/^duration-/, "");
+    lines.push(`.${PREFIX}-duration-${slug} { transition-duration: var(${toCSSVar(key)}); }`);
+  }
+  lines.push("");
+
+  // --- Focus ring ---
+  lines.push("/* Focus ring */");
+  lines.push(`.${PREFIX}-focus-ring:focus-visible { outline: var(--${PREFIX}-focus-width) solid var(--${PREFIX}-color-focus-ring); outline-offset: var(--${PREFIX}-focus-offset); }`);
   lines.push("");
 
   return lines.join("\n") + "\n";
@@ -461,26 +522,81 @@ function buildScopedOverridesCSS(baseTokens) {
 
 function buildFluentAdapter() {
   const map = {
+    // Brand
     colorBrandBackground: "color-brand-primary",
     colorBrandBackgroundHover: "color-brand-secondary",
     colorBrandBackgroundPressed: "color-brand-tertiary",
+    colorBrandForeground1: "color-brand-primary",
+    colorBrandForeground2: "color-brand-secondary",
     colorBrandForegroundOnLight: "color-brand-primary",
+    colorBrandForegroundLink: "color-text-link",
+    colorBrandForegroundLinkHover: "color-text-link-hover",
+    colorCompoundBrandBackground: "color-brand-primary",
+    colorCompoundBrandBackgroundHover: "color-brand-secondary",
+    colorCompoundBrandBackgroundPressed: "color-brand-tertiary",
+    colorCompoundBrandStroke: "color-brand-primary",
+    colorCompoundBrandStrokeHover: "color-brand-secondary",
+    colorCompoundBrandStrokePressed: "color-brand-tertiary",
+    colorBrandStroke1: "color-brand-primary",
+    colorBrandStroke2: "color-brand-secondary",
+
+    // Neutral backgrounds
     colorNeutralBackground1: "color-surface-base",
+    colorNeutralBackground1Hover: "color-surface-overlay",
+    colorNeutralBackground1Pressed: "color-surface-overlay",
     colorNeutralBackground2: "color-surface-raised",
     colorNeutralBackground3: "color-surface-overlay",
+    colorNeutralBackground4: "color-surface-overlay",
+    colorNeutralBackground5: "color-surface-overlay",
+    colorNeutralBackground6: "color-surface-raised",
+    colorNeutralBackgroundDisabled: "color-surface-disabled",
+    colorSubtleBackground: "color-surface-base",
+    colorSubtleBackgroundHover: "color-surface-overlay",
+    colorSubtleBackgroundPressed: "color-surface-overlay",
+    colorTransparentBackground: "color-surface-base",
+
+    // Neutral foregrounds
     colorNeutralForeground1: "color-text-primary",
     colorNeutralForeground2: "color-text-secondary",
+    colorNeutralForeground3: "color-text-secondary",
+    colorNeutralForeground4: "color-text-disabled",
+    colorNeutralForegroundDisabled: "color-text-disabled",
     colorNeutralForegroundOnBrand: "color-text-on-brand",
+
+    // Strokes
     colorNeutralStroke1: "color-border-default",
+    colorNeutralStroke1Hover: "color-border-strong",
+    colorNeutralStroke1Pressed: "color-border-strong",
     colorNeutralStroke2: "color-border-strong",
+    colorNeutralStrokeAccessible: "color-border-strong",
+    colorNeutralStrokeAccessibleHover: "color-border-strong",
+    colorNeutralStrokeDisabled: "color-border-default",
+    colorTransparentStroke: "color-border-default",
+    strokeWidthThin: "border-width-thin",
+    strokeWidthThick: "border-width-thick",
+
+    // Focus
+    colorStrokeFocus1: "color-surface-base",
+    colorStrokeFocus2: "color-focus-ring",
+
+    // Status
     colorPaletteGreenForeground1: "color-status-success",
+    colorPaletteGreenBackground3: "color-status-success",
     colorPaletteYellowForeground1: "color-status-warning",
+    colorPaletteYellowBackground3: "color-status-warning",
     colorPaletteRedForeground1: "color-status-danger",
+    colorPaletteRedBackground3: "color-status-danger",
+    colorPaletteBlueForeground2: "color-status-info",
+    colorPaletteBlueBackground2: "color-status-info",
+
+    // Border radius
     borderRadiusSmall: "radius-sm",
     borderRadiusMedium: "radius-md",
     borderRadiusLarge: "radius-lg",
     borderRadiusXLarge: "radius-xl",
     borderRadiusCircular: "radius-round",
+
+    // Typography
     fontFamilyBase: "font-family-base",
     fontFamilyMonospace: "font-family-mono",
     fontSizeBase200: "font-size-xs",
@@ -491,17 +607,38 @@ function buildFluentAdapter() {
     fontWeightRegular: "font-weight-regular",
     fontWeightSemibold: "font-weight-semibold",
     fontWeightBold: "font-weight-bold",
+    lineHeightBase200: "font-line-height-tight",
+    lineHeightBase300: "font-line-height-normal",
+    lineHeightBase400: "font-line-height-normal",
+    lineHeightBase500: "font-line-height-normal",
+    lineHeightBase600: "font-line-height-tight",
+
+    // Spacing
+    spacingHorizontalXXS: "spacing-xs",
+    spacingHorizontalXS: "spacing-xs",
     spacingHorizontalS: "spacing-sm",
     spacingHorizontalM: "spacing-md",
     spacingHorizontalL: "spacing-lg",
     spacingHorizontalXL: "spacing-xl",
+    spacingVerticalXXS: "spacing-xs",
+    spacingVerticalXS: "spacing-xs",
     spacingVerticalS: "spacing-sm",
     spacingVerticalM: "spacing-md",
     spacingVerticalL: "spacing-lg",
     spacingVerticalXL: "spacing-xl",
+
+    // Shadows
     shadow2: "shadow-sm",
     shadow4: "shadow-md",
+    shadow8: "shadow-md",
     shadow16: "shadow-lg",
+    shadow28: "shadow-lg",
+    shadow64: "shadow-lg",
+
+    // Duration
+    durationFast: "duration-fast",
+    durationNormal: "duration-normal",
+    durationSlow: "duration-slow",
   };
 
   const lines = [
@@ -936,8 +1073,12 @@ function buildBootstrap5Adapter() {
   /* --- Brand / Action --- */
   --bs-primary: ${v("color-brand-primary")};
   --bs-primary-rgb: none;
-  --bs-link-color: ${v("color-brand-primary")};
-  --bs-link-hover-color: ${v("color-brand-secondary")};
+  --bs-secondary: ${v("color-brand-secondary")};
+  --bs-info: ${v("color-status-info")};
+  --bs-light: ${v("color-surface-raised")};
+  --bs-dark: ${v("color-text-primary")};
+  --bs-link-color: ${v("color-text-link")};
+  --bs-link-hover-color: ${v("color-text-link-hover")};
 
   /* --- Surfaces --- */
   --bs-body-bg: ${v("color-surface-base")};
@@ -1029,8 +1170,8 @@ function buildAGGridAdapter() {
   --ag-secondary-border-color: ${v("color-border-strong")};
 
   /* --- Selection & Focus --- */
-  --ag-selected-row-background-color: ${v("color-brand-primary")};
-  --ag-range-selection-background-color: ${v("color-brand-primary")};
+  --ag-selected-row-background-color: color-mix(in srgb, ${v("color-brand-primary")} 15%, ${v("color-surface-base")});
+  --ag-range-selection-background-color: color-mix(in srgb, ${v("color-brand-primary")} 15%, ${v("color-surface-base")});
   --ag-range-selection-border-color: ${v("color-brand-secondary")};
   --ag-input-focus-border-color: ${v("color-brand-primary")};
   --ag-checkbox-checked-color: ${v("color-brand-primary")};
@@ -2080,6 +2221,36 @@ function buildTailwindPreset(baseTokens) {
     fontSize[key] = `var(--${PREFIX}-font-size-${key})`;
   }
 
+  const fontWeight = {};
+  for (const [key] of flatten(baseTokens.font?.weight || {})) {
+    fontWeight[key] = `var(--${PREFIX}-font-weight-${key})`;
+  }
+
+  const lineHeight = {};
+  for (const [key] of flatten(baseTokens.font?.["line-height"] || {})) {
+    lineHeight[key] = `var(--${PREFIX}-font-line-height-${key})`;
+  }
+
+  const letterSpacing = {};
+  for (const [key] of flatten(baseTokens.font?.["letter-spacing"] || {})) {
+    letterSpacing[key] = `var(--${PREFIX}-font-letter-spacing-${key})`;
+  }
+
+  const opacity = {};
+  for (const [key] of flatten(baseTokens.opacity || {})) {
+    opacity[key] = `var(--${PREFIX}-opacity-${key})`;
+  }
+
+  const zIndex = {};
+  for (const [key] of flatten(baseTokens.z || {})) {
+    zIndex[key] = `var(--${PREFIX}-z-${key})`;
+  }
+
+  const transitionDuration = {};
+  for (const [key] of flatten(baseTokens.duration || {})) {
+    transitionDuration[key] = `var(--${PREFIX}-duration-${key})`;
+  }
+
   const preset = {
     theme: {
       extend: {
@@ -2087,16 +2258,22 @@ function buildTailwindPreset(baseTokens) {
         spacing,
         borderRadius,
         fontSize,
+        fontWeight,
         fontFamily: {
-          sans: `var(--${PREFIX}-font-family-base)`,
-          mono: `var(--${PREFIX}-font-family-mono)`,
+          sans: [`var(--${PREFIX}-font-family-base)`],
+          mono: [`var(--${PREFIX}-font-family-mono)`],
         },
+        lineHeight,
+        letterSpacing,
         boxShadow: {
           sm: `var(--${PREFIX}-shadow-sm)`,
           DEFAULT: `var(--${PREFIX}-shadow-md)`,
           md: `var(--${PREFIX}-shadow-md)`,
           lg: `var(--${PREFIX}-shadow-lg)`,
         },
+        opacity,
+        zIndex,
+        transitionDuration,
       },
     },
   };

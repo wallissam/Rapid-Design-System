@@ -5,4 +5,5 @@ tokens/local*.json
 tokens/*.example.json
 .figmarc*
 .git*
-*.md
+.editorconfig
+CHANGELOG.md
