@@ -1,15 +1,91 @@
 {
   "name": "rapid-design-system",
   "version": "0.1.0",
-  "private": true,
   "description": "Framework-agnostic design token governance and synchronization layer",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wallissam/Rapid-Design-System.git"
+  },
+  "keywords": [
+    "design-system",
+    "design-tokens",
+    "css-variables",
+    "theming",
+    "dark-mode",
+    "fluent-ui",
+    "bootstrap",
+    "ag-grid",
+    "tailwind",
+    "bryntum",
+    "highcharts",
+    "chartjs",
+    "spfx",
+    "pcf"
+  ],
+
+  "main": "./packages/css/global.css",
+
+  "exports": {
+    ".": "./packages/css/global.css",
+    "./css/global.css": "./packages/css/global.css",
+    "./css/utilities.css": "./packages/css/utilities.css",
+    "./css/scoped-overrides.css": "./packages/css/scoped-overrides.css",
+    "./fluent": "./packages/fluent-adapter/index.ts",
+    "./fluent/provider": "./packages/fluent-adapter/Provider.tsx",
+    "./fluent-v8": "./packages/fluent-v8-adapter/index.ts",
+    "./fluent-v8/provider": "./packages/fluent-v8-adapter/Provider.tsx",
+    "./adapters/bootstrap5.css": "./packages/adapters/bootstrap5.css",
+    "./adapters/ag-grid.css": "./packages/adapters/ag-grid.css",
+    "./adapters/fullcalendar.css": "./packages/adapters/fullcalendar.css",
+    "./adapters/telerik-kendo.css": "./packages/adapters/telerik-kendo.css",
+    "./adapters/sweetalert2.css": "./packages/adapters/sweetalert2.css",
+    "./adapters/devextreme.css": "./packages/adapters/devextreme.css",
+    "./adapters/primereact.css": "./packages/adapters/primereact.css",
+    "./adapters/bryntum.css": "./packages/adapters/bryntum.css",
+    "./adapters/highcharts.css": "./packages/adapters/highcharts.css",
+    "./adapters/highcharts": "./packages/adapters/highcharts.ts",
+    "./adapters/chartjs": "./packages/adapters/chartjs.ts",
+    "./adapters/css-vars-bridge": "./packages/adapters/_css-vars-bridge.ts",
+    "./adapters/spfx.css": "./packages/adapters/spfx.css",
+    "./adapters/pcf-theme-bridge": "./packages/adapters/pcf-theme-bridge.ts",
+    "./adapters/tailwind-preset": "./packages/adapters/tailwind-preset.js",
+    "./tokens/base.json": "./tokens/base.json",
+    "./tokens/dark.json": "./tokens/dark.json"
+  },
+
+  "files": [
+    "packages/",
+    "tokens/base.json",
+    "tokens/dark.json",
+    "LICENSE"
+  ],
+
   "scripts": {
     "build": "node scripts/build-tokens.js",
+    "prepublishOnly": "node scripts/build-tokens.js",
     "sync:figma": "node scripts/sync-figma.js",
     "sync": "node scripts/sync-figma.js && node scripts/build-tokens.js",
     "import:tokens-studio": "node scripts/import-tokens-studio.js",
-    "demo": "npx -y serve . -l 3000 --no-clipboard"
+    "demo": "npx -y serve . -l 3000 --no-clipboard",
+    "pack:preview": "npm pack --dry-run"
   },
+
+  "peerDependencies": {
+    "@fluentui/react": ">=8.0.0",
+    "@fluentui/react-components": ">=9.0.0",
+    "react": ">=17.0.0"
+  },
+
+  "peerDependenciesMeta": {
+    "@fluentui/react": { "optional": true },
+    "@fluentui/react-components": { "optional": true },
+    "react": { "optional": true }
+  },
+
   "devDependencies": {},
-  "license": "MIT"
+
+  "engines": {
+    "node": ">=16.0.0"
+  }
 }

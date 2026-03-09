@@ -1,0 +1,8 @@
+# Development-only files — not shipped in the npm package
+scripts/
+demo/
+tokens/local*.json
+tokens/*.example.json
+.figmarc*
+.git*
+*.md

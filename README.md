@@ -362,6 +362,190 @@ The import script auto-detects single-set vs multi-set exports, remaps Tokens St
 
 ---
 
+## Installing as an npm Package
+
+Consumers install the published package and import only what they need:
+
+```bash
+npm install rapid-design-system
+```
+
+### CSS &mdash; any project
+
+```html
+<!-- Global tokens: :root + [data-theme="dark"] -->
+<link rel="stylesheet" href="node_modules/rapid-design-system/packages/css/global.css">
+
+<!-- Optional: utility classes -->
+<link rel="stylesheet" href="node_modules/rapid-design-system/packages/css/utilities.css">
+```
+
+Or via a bundler (Vite, webpack, etc.):
+
+```js
+import "rapid-design-system/css/global.css";
+import "rapid-design-system/css/utilities.css";
+```
+
+### Fluent UI v9
+
+```tsx
+import { rapidFluentTheme } from "rapid-design-system/fluent";
+import { RapidFluentProvider } from "rapid-design-system/fluent/provider";
+
+<RapidFluentProvider>
+  <App />
+</RapidFluentProvider>
+```
+
+### Fluent UI v8
+
+```tsx
+import { rapidFluentV8Theme } from "rapid-design-system/fluent-v8";
+import { RapidFluentV8Provider } from "rapid-design-system/fluent-v8/provider";
+
+<RapidFluentV8Provider>
+  <App />
+</RapidFluentV8Provider>
+```
+
+### Third-party adapters
+
+```js
+// CSS adapters — load after the library's own CSS
+import "rapid-design-system/adapters/bootstrap5.css";
+import "rapid-design-system/adapters/ag-grid.css";
+import "rapid-design-system/adapters/sweetalert2.css";
+
+// JS bridges — for canvas-based libraries
+import { applyRapidDefaults, rapidThemePlugin } from "rapid-design-system/adapters/chartjs";
+import { applyRapidHighchartsTheme } from "rapid-design-system/adapters/highcharts";
+
+// Runtime token reader
+import { token, palette, onThemeChange } from "rapid-design-system/adapters/css-vars-bridge";
+
+// Tailwind preset
+// tailwind.config.js:
+//   presets: [require("rapid-design-system/adapters/tailwind-preset")]
+```
+
+### Reading raw token JSON
+
+```js
+import baseTokens from "rapid-design-system/tokens/base.json";
+import darkTokens from "rapid-design-system/tokens/dark.json";
+```
+
+---
+
+## Publishing to npm (Maintainer Guide)
+
+If npm package authoring is new to you, here is the exact step-by-step:
+
+### One-time setup
+
+```bash
+# 1. Create an npm account (if you don't have one)
+#    Go to https://www.npmjs.com/signup
+
+# 2. Log in from the terminal
+npm login
+#    It will ask for your username, password, and email.
+#    If you have 2FA enabled, it will prompt for a one-time code.
+
+# 3. Verify you're logged in
+npm whoami
+#    Should print your npm username.
+```
+
+### Before your first publish
+
+```bash
+# Choose your package name — it must be unique on npm.
+# The current name is "rapid-design-system".  If that's taken, either:
+#   a) Use a scoped name:  @yourorg/rapid-design-system
+#   b) Pick a different name
+#
+# To use a scoped name, edit the "name" field in package.json:
+#   "name": "@yourorg/rapid-design-system"
+#
+# Scoped packages are private by default on npm.  To publish
+# a scoped package as public (free), add to package.json:
+#   "publishConfig": { "access": "public" }
+
+# Preview what will be published (no changes made)
+cd rapid-design-system
+npm pack --dry-run
+```
+
+### Publishing
+
+```bash
+cd rapid-design-system
+
+# Rebuild all artefacts from the latest tokens
+npm run build
+
+# Publish to npm (the prepublishOnly script runs the build again as a safety net)
+npm publish
+
+# If using a scoped name and want it public:
+npm publish --access public
+```
+
+That's it. The package is now live on npm.
+
+### Updating
+
+```bash
+# Bump the version — pick one:
+npm version patch   # 0.1.0 → 0.1.1  (bug fixes, token tweaks)
+npm version minor   # 0.1.0 → 0.2.0  (new adapters, new tokens)
+npm version major   # 0.1.0 → 1.0.0  (breaking changes)
+
+# Publish the new version
+npm publish
+```
+
+`npm version` automatically updates `package.json`, creates a git commit, and tags it.
+
+### Private registry (optional)
+
+If your organisation uses a private npm registry (Azure Artifacts, GitHub Packages, Artifactory, etc.):
+
+```bash
+# Point npm at your registry
+npm config set registry https://your-registry-url/
+
+# Or use a scoped config (only this package goes to the private registry)
+npm config set @yourorg:registry https://your-registry-url/
+
+# Then publish as normal
+npm publish
+```
+
+---
+
+## What's in the Published Package
+
+The npm package ships only the consumable artefacts (15.8 kB compressed):
+
+| Path | Contents |
+|---|---|
+| `packages/css/global.css` | `:root` + `[data-theme="dark"]` custom properties |
+| `packages/css/utilities.css` | `.rapid-*` utility classes |
+| `packages/css/scoped-overrides.css` | Template for CSS scoping (copy &amp; edit) |
+| `packages/fluent-adapter/` | Fluent UI v9 theme + `<RapidFluentProvider>` |
+| `packages/fluent-v8-adapter/` | Fluent UI v8 theme + `<RapidFluentV8Provider>` |
+| `packages/adapters/` | All third-party CSS + JS adapters |
+| `tokens/base.json` | Light theme tokens (raw JSON) |
+| `tokens/dark.json` | Dark theme overrides (raw JSON) |
+| `LICENSE` | MIT |
+
+**Not shipped:** build scripts, Figma sync scripts, demo page, `.example` files, `.figmarc`, README.
+
+---
+
 ## License
 
 MIT
