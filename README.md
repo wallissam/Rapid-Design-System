@@ -179,6 +179,33 @@ import { RapidFluentV8Provider } from "rapid-design-system/fluent-v8/provider";
 
 Delete your old `createTheme()` call and palette file. Dark mode is now `data-theme="dark"` instead of a context swap.
 
+### Migrate an Existing Codebase?
+
+```bash
+npm run migrate -- ./src              # preview (dry run)
+npm run migrate -- ./src --apply      # write changes to disk
+```
+
+Replaces hardcoded hex colours, spacing, font sizes, radii, shadows, and font families with `var(--rapid-*)` references. Skips generated files and values already using `var()`.
+
+### Use the Browser Console?
+
+Any page with the console bridge loaded exposes `window.rds`:
+
+```js
+rds.get("color-brand-primary")           // "#0f6cbd"
+rds.set("color-brand-primary", "#e74c3c") // instant update
+rds.dark()                                // switch to dark mode
+rds.list()                                // print all tokens as a table
+rds.search("brand")                       // filter tokens
+rds.diff()                                // show active overrides
+rds.reset()                               // clear all overrides
+rds.export()                              // download as JSON
+rds.help()                                // full command reference
+```
+
+Include via `<script src="node_modules/rapid-design-system/packages/runtime/console.js"></script>` or paste the file into DevTools.
+
 ---
 
 ## npm Scripts
@@ -351,6 +378,64 @@ npm run build
 ```
 
 Auto-detects single/multi-set exports, remaps naming conventions, resolves references, converts font weights to numeric, formats shadows to CSS shorthand.
+
+### Figma Plugin (bidirectional sync)
+
+Located in `figma-plugin/`. Install: Figma &gt; Plugins &gt; Development &gt; Import from manifest.
+
+- **Import:** Paste `base.json` &rarr; creates Figma Variables with Light/Dark modes
+- **Export:** Read Figma Variables &rarr; copy as RDS-format JSON
+- **Lint:** Select frames &rarr; scan for colours not in the token set
+
+</details>
+
+<details>
+<summary><strong>Browser Extension</strong></summary>
+
+Chrome/Edge extension that detects RDS tokens on any page and provides a floating palette inspector.
+
+Install: `chrome://extensions` &gt; Developer mode &gt; Load unpacked &gt; select `browser-extension/`.
+
+- Colour pickers + hex text inputs for every token
+- Collapsible groups, search/filter, dark mode toggle
+- Per-token reset + override indicators
+- Import/export palettes as JSON
+- Share URL with overrides encoded as a query parameter
+- Overrides persist per-domain across page loads
+
+</details>
+
+<details>
+<summary><strong>Console API</strong></summary>
+
+Any page with `packages/runtime/console.js` loaded exposes `window.rds`:
+
+```js
+rds.get("color-brand-primary")    rds.set("color-brand-primary", "#e74c3c")
+rds.dark()   rds.light()   rds.toggle()
+rds.list()   rds.search("brand")   rds.diff()
+rds.reset()  rds.export()  rds.import({...})
+rds.help()
+```
+
+Include: `<script src="path/to/console.js"></script>` or `import "rapid-design-system/runtime/console"`.
+
+</details>
+
+<details>
+<summary><strong>Testing</strong></summary>
+
+```bash
+npm test              # 60 unit tests (Node.js, ~300ms)
+npm run test:e2e      # 21 Playwright E2E tests (~30s)
+npm run test:all      # both
+```
+
+**Unit tests** validate: all generated files exist with correct content, security invariants (prototype pollution, CSS injection), alias resolution, Tailwind format, CSS custom data.
+
+**Playwright E2E** validates: demo page renders, dark mode toggle, token editor, Chart.js integration, SweetAlert2 modals, visual regression snapshots (light + dark).
+
+**CI** (`.github/workflows/test.yml`): runs unit tests, Playwright E2E, contrast check, and token audit on every push.
 
 </details>
 

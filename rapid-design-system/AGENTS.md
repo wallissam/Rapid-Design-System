@@ -1,231 +1,265 @@
 # Agent Guide — Rapid Design System
 
-This document helps AI coding assistants understand the project's architecture, conventions, and extension patterns. Read this before making changes.
+Read this before making changes. It maps the full project, every script, every output, every convention.
 
 ## Project Intent
 
-RDS is a **token governance layer**, not a component library. It compiles JSON design tokens into CSS custom properties and framework-specific adapters. The intent is that one JSON change propagates to every UI library (Fluent UI, Bootstrap, AG Grid, Chart.js, etc.) without editing multiple theme files.
+RDS is a **token governance layer**, not a component library. JSON design tokens compile into CSS custom properties and framework-specific adapters. One JSON change propagates to every library without editing multiple theme files.
 
-**The non-negotiable constraint:** dark mode and all theming is handled via CSS custom properties and the `data-theme` HTML attribute. No JavaScript theme context, no React state for colours, no runtime colour computation. The browser's CSS engine is the theming runtime.
+**Non-negotiable:** all theming is CSS custom properties + `data-theme` HTML attribute. No JavaScript theme context, no React state for colours. The browser's CSS engine is the theming runtime.
 
 ## Architecture
 
 ```
-Source of Truth          Build Pipeline              Outputs (auto-generated)
-─────────────           ──────────────              ────────────────────────
-tokens/base.json   ──┐
-tokens/dark.json   ──┤  scripts/build-tokens.js    packages/css/global.css
-tokens/local.json  ──┤  (npm run build)         →  packages/css/utilities.css
-tokens/themes/*.json ┘                              packages/fluent-adapter/*
-                                                    packages/fluent-v8-adapter/*
-                                                    packages/adapters/* (15 files)
-                                                    packages/css/scoped-overrides.css
+tokens/base.json ───────┐
+tokens/dark.json ───────┤
+tokens/local.json* ─────┤  * optional
+tokens/themes/*.json* ──┤
+                        ▼
+    scripts/build-tokens.js (npm run build)
+                        │
+    ┌───────────────────┼────────────────────────────┐
+    ▼                   ▼                            ▼
+packages/css/       packages/fluent-*/          packages/adapters/
+  global.css          index.ts (v9)               15 CSS + JS adapters
+  utilities.css       Provider.tsx (v9)
+  scoped-overrides    index.ts (v8)             packages/runtime/
+                      Provider.tsx (v8)           theme-engine.ts
+                                                  console.js
+                                                packages/native/
+                                                  tokens.ts, .swift, .kt
+                                                .vscode/
+                                                  rapid-tokens.css-data.json
 ```
 
-Everything in `packages/` is generated. Never edit those files directly.
+**NEVER edit files in `packages/` or `.vscode/rapid-tokens.css-data.json`** — they are auto-generated.
 
-## Key Files
+## Complete File Reference
 
-| File | Role | Edit? |
-|---|---|---|
-| `tokens/base.json` | Light theme token values | Yes — this is the source of truth |
-| `tokens/dark.json` | Dark mode overrides (only diffs) | Yes |
-| `tokens/local.json` | Consumer overrides + extensions | Yes (optional, gitignored in some setups) |
-| `tokens/themes/*.json` | Named brand themes | Yes |
-| `scripts/build-tokens.js` | Core build pipeline | Yes — this is where adapters/utilities are defined |
-| `scripts/sync-figma.js` | Figma Variables API sync | Yes |
-| `scripts/import-tokens-studio.js` | Tokens Studio import | Yes |
-| `scripts/generate-dark.js` | Auto dark mode derivation | Yes |
-| `scripts/check-contrast.js` | WCAG contrast audit | Yes |
-| `scripts/audit-tokens.js` | Token usage governance audit | Yes |
-| `scripts/export-native.js` | RN/iOS/Android export | Yes |
-| `packages/**` | Generated outputs | **No — edit build-tokens.js instead** |
-| `demo/index.html` | Interactive demo page | Yes (but uses no innerHTML — DOM APIs only) |
-| `package.json` | npm config, scripts, exports map | Yes |
+### Source files (edit these)
 
-## Token → CSS Variable Naming
+| File | Purpose |
+|---|---|
+| `tokens/base.json` | Light theme tokens — THE source of truth |
+| `tokens/dark.json` | Dark overrides (only values that differ) |
+| `tokens/local.json` | Optional: consumer overrides + extensions |
+| `tokens/local-dark.json` | Optional: dark overrides for local tokens |
+| `tokens/themes/*.json` | Named brand themes (`data-theme="filename"`) |
+| `scripts/build-tokens.js` | Core build pipeline — adapters + utilities defined here |
+| `scripts/sync-figma.js` | Pull tokens from Figma Variables API |
+| `scripts/import-tokens-studio.js` | Transform Tokens Studio JSON exports |
+| `scripts/generate-dark.js` | Auto-derive dark.json using colour science |
+| `scripts/check-contrast.js` | WCAG 2.1 contrast audit with auto-suggest |
+| `scripts/audit-tokens.js` | Token usage governance report |
+| `scripts/export-native.js` | Generate React Native / iOS / Android tokens |
+| `scripts/migrate.js` | Codemod: replace hardcoded values with var(--rapid-*) |
+| `scripts/generate-schema.js` | Generate JSON Schema for token validation |
+| `demo/index.html` | Interactive demo with Chart.js + SweetAlert2 integrations |
+| `index.html` | GitHub Pages landing page |
+| `package.json` | npm config, scripts, exports map |
 
-JSON nesting maps to hyphenated CSS variable names with a `rapid` prefix:
+### Generated files (never edit directly)
 
-```
-{ "color": { "brand": { "primary": "#0f6cbd" } } }
-                ↓
---rapid-color-brand-primary: #0f6cbd;
-```
+| File | Generated by |
+|---|---|
+| `packages/css/global.css` | build-tokens.js |
+| `packages/css/utilities.css` | build-tokens.js |
+| `packages/css/scoped-overrides.css` | build-tokens.js |
+| `packages/fluent-adapter/index.ts` | build-tokens.js |
+| `packages/fluent-adapter/Provider.tsx` | build-tokens.js |
+| `packages/fluent-v8-adapter/index.ts` | build-tokens.js |
+| `packages/fluent-v8-adapter/Provider.tsx` | build-tokens.js |
+| `packages/adapters/*.css` (8 files) | build-tokens.js |
+| `packages/adapters/*.ts` (4 files) | build-tokens.js |
+| `packages/adapters/tailwind-preset.js` | build-tokens.js |
+| `packages/runtime/console.js` | build-tokens.js |
+| `packages/runtime/theme-engine.ts` | build-tokens.js |
+| `packages/native/tokens.ts` | export-native.js |
+| `packages/native/RapidTokens.swift` | export-native.js |
+| `packages/native/RapidTokens.kt` | export-native.js |
+| `.vscode/rapid-tokens.css-data.json` | build-tokens.js |
+| `tokens/token-schema.json` | generate-schema.js |
 
-This is deterministic. Given any JSON path, you can predict the CSS variable name.
+### Tooling (not shipped in npm)
 
-## Adding a Token
+| Directory | Purpose |
+|---|---|
+| `tests/unit/` | Node.js unit tests (`node:test`, 60 tests) |
+| `tests/e2e/` | Playwright E2E tests (21 tests, visual regression) |
+| `figma-plugin/` | Figma plugin: Import, Export, Lint |
+| `browser-extension/` | Chrome/Edge extension: live palette inspector |
+| `vscode-extension/` | VS Code extension: autocomplete, hover, diagnostics |
 
-1. Add the value to `tokens/base.json` at the appropriate nesting level
-2. If it should differ in dark mode, add the override to `tokens/dark.json`
-3. Run `npm run build`
+## All npm Scripts
 
-The build automatically generates:
-- CSS variable in `global.css`
-- Utility classes in `utilities.css` (if the token falls under a known category: color, spacing, radius, shadow, font, opacity, z, duration)
-- Tailwind preset entry (same categories)
+### Core
+| Script | Purpose |
+|---|---|
+| `build` | Compile JSON → all outputs |
+| `demo` | Serve demo at localhost:3000/demo/ |
 
-You do NOT need to edit any adapter unless you want to map the new token to a specific library's variable name.
+### Testing
+| Script | Purpose |
+|---|---|
+| `test` | Unit tests (Node.js, ~300ms) |
+| `test:e2e` | Playwright E2E (21 tests, ~30s) |
+| `test:all` | Both unit + E2E |
+| `test:e2e:update` | Re-baseline visual regression snapshots |
 
-## Adding an Adapter
+### Quality
+| Script | Purpose |
+|---|---|
+| `check:contrast` | WCAG contrast audit with auto-suggest fixes |
+| `audit -- <dir>` | Token governance report (adoption %, hardcoded values) |
 
-All adapters are functions in `scripts/build-tokens.js`. Each function returns a string (the file content). The function is called in `main()` and the result is written via `emit()`.
+### Design Integration
+| Script | Purpose |
+|---|---|
+| `sync:figma` | Pull from Figma Variables API |
+| `sync` | Pull from Figma + build |
+| `import:tokens-studio -- <file>` | Transform Tokens Studio export |
+| `generate:dark` | Auto-derive dark.json from base.json |
 
-### CSS adapter template (for libraries with CSS custom properties):
+### Export
+| Script | Purpose |
+|---|---|
+| `export:native` | Generate React Native, iOS Swift, Android Kotlin |
+| `generate:schema` | Generate JSON Schema for token validation |
 
-```javascript
+### Migration
+| Script | Purpose |
+|---|---|
+| `migrate -- <dir>` | Codemod: replace hardcoded values with tokens |
+| `pack:preview` | Preview npm package contents |
+
+## How To Add a Token
+
+1. Add to `tokens/base.json` at the appropriate nesting level
+2. If dark mode differs, add override to `tokens/dark.json`
+3. `npm run build`
+
+Automatic outputs: CSS variable in `global.css`, utility classes in `utilities.css`, Tailwind preset entry, VS Code autocomplete entry, console bridge catalog entry.
+
+## How To Add an Adapter
+
+### CSS adapter (for libraries with CSS custom properties):
+
+```js
 function buildMyLibAdapter() {
-  return `${fileHeader("My Library Adapter", [
-    "What this adapter does.",
-    "Load AFTER the library CSS.",
-  ])}
-
+  return `${fileHeader("My Library Adapter", ["Load AFTER the library CSS."])}
 :root {
-  --lib-background: ${v("color-surface-base")};
+  --lib-bg: ${v("color-surface-base")};
   --lib-text: ${v("color-text-primary")};
   --lib-primary: ${v("color-brand-primary")};
-  --lib-border: ${v("color-border-default")};
-  --lib-font-family: ${v("font-family-base")};
-  --lib-font-size: ${v("font-size-md")};
-  --lib-radius: ${v("radius-md")};
-  --lib-shadow: ${v("shadow-md")};
 }
 `;
 }
 ```
 
-### JS bridge template (for canvas/imperative libraries):
+### JS bridge (for canvas/imperative libraries):
 
-```javascript
-function buildMyLibJSAdapter() {
-  return `${fileHeader("My Library JS Bridge").replace(/\/\*/g, "//").replace(/\*\//g, "//").replace(/ \* /g, "// ")}
-
+```js
+function buildMyLibAdapter() {
+  return `${fileHeader("My Library Bridge").replace(/\/\*/g, "//").replace(/\*\//g, "//").replace(/ \* /g, "// ")}
 import { token, tokenNumeric, palette, onThemeChange } from "./_css-vars-bridge";
-
-export function applyRapidMyLibTheme(MyLib: any): void {
-  MyLib.defaults.color = token("color-text-primary");
-  MyLib.defaults.backgroundColor = token("color-surface-base");
-  MyLib.defaults.fontFamily = token("font-family-base");
-  MyLib.defaults.fontSize = tokenNumeric("font-size-md");
+export function applyRapidTheme(lib) {
+  lib.defaults.color = token("color-text-primary");
 }
 `;
 }
 ```
 
 ### Registration checklist:
-
-1. Add the builder function to `build-tokens.js`
-2. Add an `emit()` call in `main()` under the appropriate section
+1. Add builder function to `build-tokens.js`
+2. Add `emit()` call in `main()` under the appropriate section
 3. Add to `package.json` `"exports"` map
-4. Update the adapter count in the build complete message
+4. Run `npm run build` to verify
 
-## Helper Functions
-
-These are defined in `build-tokens.js` and used throughout:
+## Helper Functions (build-tokens.js)
 
 | Function | Returns | Use for |
 |---|---|---|
 | `v("token-key")` | `var(--rapid-token-key)` | CSS adapter templates |
 | `toCSSVar("key")` | `--rapid-key` | Raw CSS property names |
 | `flatten(obj, prefix)` | `[["prefix-key", "value"], ...]` | Iterating tokens |
-| `fileHeader(title, lines)` | Comment block string | Top of every generated file |
-| `emit(path, content)` | void (writes file) | Output step in main() |
+| `fileHeader(title, lines)` | Comment block string | Top of generated files |
+| `emit(path, content)` | void (writes file + logs) | Output step in main() |
 | `sanitizeCSSValue(val)` | Validated string | CSS output safety |
 | `validateTokenKey(key)` | boolean | CSS key safety |
 | `deepMerge(target, source)` | Merged object | Token file merging |
 | `resolveAliases(obj)` | Resolved object | $-reference resolution |
 
+## Token Naming
+
+JSON path → CSS variable: `{ "color": { "brand": { "primary": "#0f6cbd" } } }` → `--rapid-color-brand-primary`
+
+Utility classes: `.rapid-bg-brand-primary`, `.rapid-text-primary` (text tokens strip the `text-` prefix), `.rapid-border-brand-primary`, `.rapid-p-md`, `.rapid-px-md`, `.rapid-mt-lg`, etc.
+
 ## Semantic Aliasing
 
-Token values starting with `$` are resolved to other token values at build time:
+`$` prefix references another token: `"color.action.primary": "$color.brand.primary"`. Resolved at build time after local.json merge.
 
-```json
-{ "color": { "action": { "primary": "$color.brand.primary" } } }
-```
+## Security Invariants
 
-The dot-path after `$` maps to the JSON nesting. Resolution happens before any output is generated, so adapters see the resolved value.
+1. Every object iteration MUST skip `__proto__`, `constructor`, `prototype` (`isSafeKey()`)
+2. Every CSS value MUST pass `sanitizeCSSValue()` (rejects `;{}\\<>`)
+3. Every CSS key MUST pass `validateTokenKey()`
+4. Never use `innerHTML` — use `createElement` + `textContent`
+5. Always wrap `JSON.parse` in try/catch
+6. Validate user input (hex: `/^#[0-9a-fA-F]{6}$/`)
 
-## Security Rules
-
-These are non-negotiable. Every PR should maintain them:
-
-1. **Prototype pollution**: Every `for (const [key, val] of Object.entries(obj))` loop MUST skip `__proto__`, `constructor`, `prototype`. Use `isSafeKey(key)` or check against `UNSAFE_KEYS`.
-
-2. **CSS injection**: Every value written to CSS MUST pass `sanitizeCSSValue()`. Every key MUST pass `validateTokenKey()`. These reject `;`, `{`, `}`, `\`, `<`, `>`.
-
-3. **No innerHTML**: The demo page uses `createElement` + `textContent` + `setAttribute`. Never use `innerHTML` or template literal HTML interpolation with dynamic values.
-
-4. **JSON parsing**: Always wrap `JSON.parse` in try/catch with a clean error message.
-
-5. **User input validation**: The demo page validates colour inputs against `/^#[0-9a-fA-F]{6}$/` before applying.
-
-6. **URL validation**: The PCF bridge validates `cssHref` against cross-origin URLs.
-
-## Testing Changes
-
-After any change, verify with:
+## Testing
 
 ```bash
-npm run build                    # must produce 22+ artefacts without warnings
-npm run check:contrast           # should not introduce new failures
-npm run check:contrast --strict  # CI gate — exits 1 on any AA failure
-npm run audit -- ./demo          # reports token adoption in the demo page
+npm test              # 60 unit tests (~300ms)
+npm run test:e2e      # 21 Playwright tests (~30s)
+npm run test:all      # both
+npm run check:contrast   # WCAG audit
+npm run audit -- ./demo  # governance report
 ```
 
-## Common Tasks — Decision Tree
+Unit tests cover: all generated files exist, correct content, security (proto pollution, CSS injection, alias resolution), Tailwind format, CSS custom data.
 
-**"I need to change a colour"** → Edit `tokens/base.json` (and `dark.json` if dark differs) → `npm run build`
+E2E tests cover: page renders, dark mode toggle, token editor, Chart.js integration, SweetAlert2 modals, visual regression screenshots.
 
-**"I need to add a token that doesn't exist"** → Add to `base.json` → add dark override to `dark.json` if needed → `npm run build` → new CSS var and utility classes appear automatically
+## Decision Tree
 
-**"I need to support a new CSS library"** → Add a builder function to `build-tokens.js` → register in `main()` → add to `package.json` exports → `npm run build`
-
-**"I need to support a new canvas/JS library"** → Same as above, but the builder emits TypeScript that imports from `_css-vars-bridge.ts`
-
-**"I need to add a new utility class pattern"** → Edit `buildUtilitiesCSS()` in `build-tokens.js` → follow existing iteration pattern
-
-**"I need to map a token to a Fluent UI slot"** → Edit the `map` object in `buildFluentAdapter()` (v9) or the palette/semanticColors objects in `buildFluentV8Adapter()` (v8) → `npm run build`
-
-**"I need to add a named brand theme"** → Create `tokens/themes/brandname.json` with override values → `npm run build` → use `data-theme="brandname"`
-
-**"I need to extend the Tailwind preset"** → Edit `buildTailwindPreset()` in `build-tokens.js` → the preset auto-generates from token categories
-
-**"I need to update the demo page"** → Edit `demo/index.html` directly → use `createElement`/`textContent` for dynamic content, never `innerHTML`
-
-## File Naming Conventions
-
-- Token files: lowercase, hyphens (`base.json`, `local-dark.json`)
-- CSS adapters: lowercase, hyphens (`ag-grid.css`, `bootstrap5.css`)
-- TS/JS adapters: lowercase, hyphens (`chartjs.ts`, `pcf-theme-bridge.ts`)
-- Shared utilities: underscore prefix (`_css-vars-bridge.ts`)
-- Native outputs: PascalCase for Swift/Kotlin (`RapidTokens.swift`), camelCase for TS (`tokens.ts`)
+| I need to... | Steps |
+|---|---|
+| Change a colour | Edit `base.json` (+ `dark.json`) → `npm run build` |
+| Add a new token | Add to `base.json` → `npm run build` (auto-generates CSS var + utilities) |
+| Support a new CSS library | Add builder function + emit + export in build-tokens.js |
+| Support a new canvas library | Same, but emit TS importing from `_css-vars-bridge.ts` |
+| Map a Fluent UI slot | Edit the `map` in `buildFluentAdapter()` or `buildFluentV8Adapter()` |
+| Add a brand theme | Create `tokens/themes/name.json` → `npm run build` |
+| Update the demo | Edit `demo/index.html` (DOM APIs only, no innerHTML) |
+| Run the full test suite | `npm run test:all` |
+| Check accessibility | `npm run check:contrast` |
+| Migrate an existing codebase | `npm run migrate -- ./src --apply` |
+| Export to mobile platforms | `npm run export:native` |
 
 ## Figma Plugin
 
-Located in `figma-plugin/`. Three files, zero build step:
+`figma-plugin/` — three files, zero build step. Import (JSON → Variables), Export (Variables → JSON), Lint (scan for off-system colours). Test: Figma > Plugins > Development > Import from manifest.
 
-| File | Role |
-|---|---|
-| `manifest.json` | Plugin metadata (name, capabilities, entry points) |
-| `code.js` | Figma sandbox code — access to Variables API, document nodes |
-| `ui.html` | Plugin UI panel — tabs for Import, Export, Lint |
+## Browser Extension
 
-**Import:** Paste `base.json` + `dark.json` → creates/updates a "Rapid Design System" Variable Collection with Light + Dark modes. Creates COLOR variables for hex values, FLOAT for numeric values.
+`browser-extension/` — Manifest V3, Chrome + Edge. Content script detects `--rapid-*` vars, injects floating palette panel with colour pickers, per-token reset, import/export, share URL, dark mode toggle. Overrides persist per-domain. Test: chrome://extensions > Developer mode > Load unpacked.
 
-**Export:** Reads Figma Variables → outputs RDS-format JSON. Copy into `tokens/base.json`.
+## VS Code Extension
 
-**Lint:** Select frames → scans all fills and strokes → flags colours not in the token set.
+`vscode-extension/` — Autocomplete for `var(--rapid-*` and `.rapid-*` classes, hover info with light/dark values, diagnostics for hardcoded hex values, quick-fix to replace with tokens. Package: `cd vscode-extension && npm run package`.
 
-Communication: `code.js` ↔ `ui.html` via `figma.ui.postMessage()` / `window.onmessage`.
+## Console Bridge
 
-To test locally: Figma > Plugins > Development > Import plugin from manifest > select `figma-plugin/manifest.json`.
+`packages/runtime/console.js` — auto-generated, attaches `window.rds`. `rds.get()`, `rds.set()`, `rds.dark()`, `rds.list()`, `rds.search()`, `rds.diff()`, `rds.reset()`, `rds.export()`, `rds.import()`, `rds.toggle()`, `rds.help()`. Loaded automatically in the demo page.
 
-## What NOT To Do
+## Do NOT
 
-- Don't edit files in `packages/` — they're overwritten on every build
-- Don't use JavaScript/React context for theme switching
-- Don't hardcode colour or spacing values in adapters (use `v("token-key")`)
-- Don't add UI components — this is infrastructure, not a component library
-- Don't skip security guards (prototype pollution, CSS injection)
-- Don't add npm dependencies — the build is zero-dependency by design
+- Edit files in `packages/` (generated)
+- Use JS/React context for theme switching (use `data-theme`)
+- Hardcode values in adapters (use `v("token-key")`)
+- Add UI components (this is infrastructure)
+- Use `innerHTML` anywhere
+- Skip security guards
+- Add npm dependencies to the core build (zero-dependency by design)
