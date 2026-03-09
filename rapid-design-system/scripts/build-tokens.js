@@ -9,8 +9,10 @@
  * Core outputs:
  *   • packages/css/global.css             – :root + [data-theme="dark"] custom properties
  *   • packages/css/utilities.css          – .rapid-* utility classes
- *   • packages/fluent-adapter/index.ts    – Fluent UI v9 theme object → CSS var() refs
- *   • packages/fluent-adapter/Provider.tsx – <RapidFluentProvider> wrapper
+ *   • packages/fluent-adapter/index.ts       – Fluent UI v9 theme object → CSS var() refs
+ *   • packages/fluent-adapter/Provider.tsx    – <RapidFluentProvider> wrapper (v9)
+ *   • packages/fluent-v8-adapter/index.ts     – Fluent UI v8 theme: IPalette + ISemanticColors + IEffects + IFontStyles
+ *   • packages/fluent-v8-adapter/Provider.tsx  – <RapidFluentV8Provider> wrapper (v8)
  *
  * CSS Variable Override Adapters (load after library CSS):
  *   • packages/adapters/bootstrap5.css     – Bootstrap 5.3+
@@ -45,6 +47,7 @@ const ROOT = path.resolve(__dirname, "..");
 const TOKENS_DIR = path.join(ROOT, "tokens");
 const CSS_DIR = path.join(ROOT, "packages", "css");
 const FLUENT_DIR = path.join(ROOT, "packages", "fluent-adapter");
+const FLUENT_V8_DIR = path.join(ROOT, "packages", "fluent-v8-adapter");
 const ADAPTERS_DIR = path.join(ROOT, "packages", "adapters");
 
 const PREFIX = "rapid";
@@ -284,6 +287,359 @@ export const RapidFluentProvider: React.FC<RapidFluentProviderProps> = ({
       {children}
     </FluentProvider>
   );
+};
+`;
+}
+
+// ---------------------------------------------------------------------------
+// Fluent UI v8 adapter — index.ts
+//
+// v8 uses createTheme() with IPalette / ISemanticColors / IEffects / IFontStyles.
+// Values pass through mergeStyles → CSS, so var() strings resolve in the browser.
+// We supply EVERY semantic color explicitly to bypass v8's internal colour
+// derivation (which can't parse var() as hex).
+// ---------------------------------------------------------------------------
+
+function buildFluentV8Adapter() {
+  const lines = [
+    fileHeader("Fluent UI v8 Theme Adapter"),
+    "",
+    `import type { PartialTheme, IEffects, IFontStyles } from "@fluentui/react";`,
+    "",
+    "/**",
+    " * Fluent UI v8 theme where every colour, radius, shadow, and font",
+    " * value is a CSS var() reference into Rapid's global custom properties.",
+    " *",
+    " * Both this v8 theme and the sibling v9 adapter resolve to the SAME",
+    " * --rapid-* CSS variables, so v8 and v9 controls rendered on the same",
+    " * page stay in perfect visual sync.  Dark mode is driven by the",
+    " * data-theme attribute on <html> — no JS context swap required.",
+    " *",
+    " * IMPORTANT: v8's createTheme() tries to derive semantic colours by",
+    " * parsing palette hex values.  Because we pass var() strings, those",
+    " * derivations produce warnings.  Every semantic colour slot is",
+    " * therefore provided explicitly below, overriding the broken",
+    " * derivations.  The resulting CSS is fully correct.",
+    " */",
+    "",
+  ];
+
+  // ---------- palette ----------
+
+  const palette = {
+    themePrimary:        "color-brand-primary",
+    themeLighterAlt:     "color-surface-overlay",
+    themeLighter:        "color-surface-overlay",
+    themeLight:          "color-brand-tertiary",
+    themeTertiary:       "color-brand-tertiary",
+    themeSecondary:      "color-brand-secondary",
+    themeDarkAlt:        "color-brand-secondary",
+    themeDark:           "color-brand-secondary",
+    themeDarker:         "color-brand-tertiary",
+
+    neutralPrimary:      "color-text-primary",
+    neutralDark:         "color-text-primary",
+    neutralSecondary:    "color-text-secondary",
+    neutralSecondaryAlt: "color-text-secondary",
+    neutralTertiary:     "color-border-strong",
+    neutralTertiaryAlt:  "color-border-default",
+    neutralQuaternary:   "color-border-default",
+    neutralQuaternaryAlt:"color-surface-overlay",
+    neutralLight:        "color-surface-overlay",
+    neutralLighter:      "color-surface-raised",
+    neutralLighterAlt:   "color-surface-base",
+
+    black:   "color-text-primary",
+    white:   "color-surface-base",
+    accent:  "color-brand-primary",
+
+    red:        "color-status-danger",
+    redDark:    "color-status-danger",
+    green:      "color-status-success",
+    greenDark:  "color-status-success",
+    yellow:     "color-status-warning",
+    yellowDark: "color-status-warning",
+    yellowLight:"color-status-warning",
+    orange:     "color-status-warning",
+    orangeLight:"color-status-warning",
+    blueMid:    "color-brand-primary",
+    blue:       "color-brand-primary",
+    blueDark:   "color-brand-secondary",
+    blueLight:  "color-brand-tertiary",
+    tealDark:   "color-brand-secondary",
+    teal:       "color-brand-primary",
+    tealLight:  "color-brand-tertiary",
+    purpleDark: "color-brand-secondary",
+    purple:     "color-brand-primary",
+    purpleLight:"color-brand-tertiary",
+    magentaDark:"color-brand-secondary",
+    magenta:    "color-brand-primary",
+    magentaLight:"color-brand-tertiary",
+  };
+
+  lines.push("export const rapidFluentV8Palette = {");
+  for (const [slot, token] of Object.entries(palette)) {
+    lines.push(`  ${slot}: "${v(token)}",`);
+  }
+  lines.push("} as const;", "");
+
+  // ---------- semanticColors ----------
+
+  const semantic = {
+    // Body
+    bodyBackground:              "color-surface-base",
+    bodyBackgroundHovered:       "color-surface-overlay",
+    bodyBackgroundChecked:       "color-surface-overlay",
+    bodyFrameBackground:         "color-surface-base",
+    bodyFrameDivider:            "color-border-default",
+    bodyText:                    "color-text-primary",
+    bodyTextChecked:             "color-text-primary",
+    bodySubtext:                 "color-text-secondary",
+    bodyStandoutBackground:      "color-surface-raised",
+    bodyDivider:                 "color-border-default",
+
+    // Disabled
+    disabledBackground:          "color-surface-overlay",
+    disabledText:                "color-text-secondary",
+    disabledSubtext:             "color-border-default",
+    disabledBodyText:            "color-text-secondary",
+    disabledBodySubtext:         "color-border-default",
+
+    // Focus
+    focusBorder:                 "color-brand-primary",
+
+    // Variant borders
+    variantBorder:               "color-border-default",
+    variantBorderHovered:        "color-border-strong",
+
+    // Default button
+    defaultStateBackground:      "color-surface-base",
+    buttonBackground:            "color-surface-raised",
+    buttonBackgroundHovered:     "color-surface-overlay",
+    buttonBackgroundPressed:     "color-surface-overlay",
+    buttonBackgroundChecked:     "color-surface-overlay",
+    buttonBackgroundCheckedHovered: "color-surface-overlay",
+    buttonBackgroundDisabled:    "color-surface-overlay",
+    buttonBorder:                "color-border-default",
+    buttonBorderDisabled:        "color-border-default",
+    buttonText:                  "color-text-primary",
+    buttonTextHovered:           "color-text-primary",
+    buttonTextPressed:           "color-text-primary",
+    buttonTextChecked:           "color-text-primary",
+    buttonTextCheckedHovered:    "color-text-primary",
+    buttonTextDisabled:          "color-text-secondary",
+
+    // Primary button
+    primaryButtonBackground:         "color-brand-primary",
+    primaryButtonBackgroundHovered:  "color-brand-secondary",
+    primaryButtonBackgroundPressed:  "color-brand-tertiary",
+    primaryButtonBackgroundDisabled: "color-surface-overlay",
+    primaryButtonBorder:             "color-brand-primary",
+    primaryButtonText:               "color-text-on-brand",
+    primaryButtonTextHovered:        "color-text-on-brand",
+    primaryButtonTextPressed:        "color-text-on-brand",
+    primaryButtonTextDisabled:       "color-text-secondary",
+
+    // Action (link-style) button
+    actionLink:                  "color-text-primary",
+    actionLinkHovered:           "color-text-primary",
+
+    // Link
+    link:                        "color-brand-primary",
+    linkHovered:                 "color-brand-secondary",
+
+    // Input
+    inputBorder:                 "color-border-default",
+    inputBorderHovered:          "color-border-strong",
+    inputBackground:             "color-surface-base",
+    inputBackgroundChecked:      "color-brand-primary",
+    inputBackgroundCheckedHovered: "color-brand-secondary",
+    inputForegroundChecked:      "color-text-on-brand",
+    inputFocusBorderAlt:         "color-brand-primary",
+    inputText:                   "color-text-primary",
+    inputTextHovered:            "color-text-primary",
+    inputPlaceholderText:        "color-text-secondary",
+    inputPlaceholderBackgroundChecked: "color-brand-secondary",
+    inputIcon:                   "color-brand-primary",
+    inputIconHovered:            "color-brand-secondary",
+    inputIconDisabled:           "color-text-secondary",
+
+    // Menu
+    menuBackground:              "color-surface-base",
+    menuDivider:                 "color-border-default",
+    menuIcon:                    "color-brand-primary",
+    menuHeader:                  "color-brand-primary",
+    menuItemBackgroundHovered:   "color-surface-overlay",
+    menuItemBackgroundPressed:   "color-surface-overlay",
+    menuItemText:                "color-text-primary",
+    menuItemTextHovered:         "color-text-primary",
+
+    // List
+    listBackground:              "color-surface-base",
+    listText:                    "color-text-primary",
+    listItemBackgroundHovered:   "color-surface-overlay",
+    listItemBackgroundChecked:   "color-surface-overlay",
+    listItemBackgroundCheckedHovered: "color-surface-overlay",
+    listHeaderBackgroundHovered: "color-surface-overlay",
+    listHeaderBackgroundPressed: "color-surface-overlay",
+
+    // Status
+    errorText:                   "color-status-danger",
+    warningText:                 "color-status-warning",
+    successText:                 "color-status-success",
+    errorBackground:             "color-status-danger",
+    warningBackground:           "color-status-warning",
+    successBackground:           "color-status-success",
+    warningHighlight:            "color-status-warning",
+    blockingBackground:          "color-status-danger",
+
+    // Selection
+    accentButtonBackground:      "color-brand-primary",
+    accentButtonText:            "color-text-on-brand",
+    listTextColor:               "color-text-primary",
+
+    // Card
+    cardStandoutBackground:      "color-surface-raised",
+    cardShadow:                  "shadow-md",
+    cardShadowHovered:           "shadow-lg",
+  };
+
+  lines.push("export const rapidFluentV8SemanticColors = {");
+  for (const [slot, token] of Object.entries(semantic)) {
+    lines.push(`  ${slot}: "${v(token)}",`);
+  }
+  lines.push("} as const;", "");
+
+  // ---------- effects ----------
+
+  lines.push("export const rapidFluentV8Effects: Partial<IEffects> = {");
+  lines.push(`  roundedCorner2: "${v("radius-sm")}",`);
+  lines.push(`  roundedCorner4: "${v("radius-md")}",`);
+  lines.push(`  roundedCorner6: "${v("radius-lg")}",`);
+  lines.push(`  elevation4:  "${v("shadow-sm")}",`);
+  lines.push(`  elevation8:  "${v("shadow-md")}",`);
+  lines.push(`  elevation16: "${v("shadow-md")}",`);
+  lines.push(`  elevation64: "${v("shadow-lg")}",`);
+  lines.push("};", "");
+
+  // ---------- fonts ----------
+
+  lines.push("const fontBase = {");
+  lines.push(`  fontFamily: "${v("font-family-base")}",`);
+  lines.push("};", "");
+
+  const fontMap = {
+    tiny:        "font-size-xs",
+    xSmall:      "font-size-xs",
+    small:       "font-size-sm",
+    smallPlus:   "font-size-sm",
+    medium:      "font-size-md",
+    mediumPlus:  "font-size-md",
+    large:       "font-size-lg",
+    xLarge:      "font-size-xl",
+    xLargePlus:  "font-size-xl",
+    xxLarge:     "font-size-2xl",
+    xxLargePlus: "font-size-2xl",
+    superLarge:  "font-size-2xl",
+    mega:        "font-size-2xl",
+  };
+
+  lines.push("export const rapidFluentV8Fonts: Partial<IFontStyles> = {");
+  for (const [slot, token] of Object.entries(fontMap)) {
+    lines.push(`  ${slot}: { ...fontBase, fontSize: "${v(token)}" },`);
+  }
+  lines.push("};", "");
+
+  // ---------- combined theme ----------
+
+  lines.push("/**");
+  lines.push(" * Complete v8 PartialTheme ready for <ThemeProvider> or loadTheme().");
+  lines.push(" *");
+  lines.push(" * Both v8 and v9 adapters resolve through identical --rapid-* CSS");
+  lines.push(" * variables, so a page mixing v8 DetailsList and v9 Button will");
+  lines.push(" * render with a single coherent palette and switch themes in unison.");
+  lines.push(" */");
+  lines.push("export const rapidFluentV8Theme: PartialTheme = {");
+  lines.push("  palette: rapidFluentV8Palette as any,");
+  lines.push("  semanticColors: rapidFluentV8SemanticColors as any,");
+  lines.push("  effects: rapidFluentV8Effects as any,");
+  lines.push("  fonts: rapidFluentV8Fonts as any,");
+  lines.push("  isInverted: false,");
+  lines.push("};", "");
+
+  return lines.join("\n") + "\n";
+}
+
+// ---------------------------------------------------------------------------
+// Fluent UI v8 — Provider.tsx
+// ---------------------------------------------------------------------------
+
+function buildFluentV8ProviderTSX() {
+  return `${fileHeader("<RapidFluentV8Provider>")}
+
+import React from "react";
+import { ThemeProvider, createTheme } from "@fluentui/react";
+import type { PartialTheme } from "@fluentui/react";
+import { rapidFluentV8Theme } from "./index";
+
+export interface RapidFluentV8ProviderProps {
+  children: React.ReactNode;
+  /**
+   * Optional overrides merged on top of the Rapid v8 theme.
+   * Use this for per-section tweaks without breaking the
+   * Rapid token contract.
+   */
+  themeOverrides?: PartialTheme;
+  /**
+   * When true, applies the theme globally via loadTheme() in
+   * addition to the React context.  Useful for legacy code that
+   * reads the global theme singleton.
+   */
+  applyGlobally?: boolean;
+}
+
+/**
+ * Drop-in Fluent UI v8 ThemeProvider wired to Rapid tokens.
+ *
+ * Use alongside <RapidFluentProvider> (v9) in the same tree — both
+ * resolve through the same --rapid-* CSS variables, so v8 DetailsList
+ * and v9 Button stay visually synchronised across light/dark.
+ *
+ * Dark mode: set \`data-theme="dark"\` on <html>.  No JS context
+ * swap is needed; the CSS custom properties update and both
+ * v8 and v9 controls repaint in unison.
+ *
+ * \`\`\`tsx
+ * // Mixed v8 + v9 page
+ * <RapidFluentV8Provider>
+ *   <DetailsList ... />        {/* v8 */}
+ *   <RapidFluentProvider>
+ *     <Button>Save</Button>    {/* v9 */}
+ *   </RapidFluentProvider>
+ * </RapidFluentV8Provider>
+ * \`\`\`
+ */
+export const RapidFluentV8Provider: React.FC<RapidFluentV8ProviderProps> = ({
+  children,
+  themeOverrides,
+  applyGlobally = false,
+}) => {
+  const merged = themeOverrides
+    ? createTheme({ ...rapidFluentV8Theme, ...themeOverrides })
+    : createTheme(rapidFluentV8Theme);
+
+  if (applyGlobally) {
+    // Side-effect: also push to the global singleton so non-React
+    // code (loadTheme consumers, mergeStyles) picks it up.
+    try {
+      const { loadTheme } = require("@fluentui/react");
+      loadTheme(merged);
+    } catch {
+      // loadTheme unavailable — ThemeProvider context is still applied.
+    }
+  }
+
+  return <ThemeProvider theme={merged}>{children}</ThemeProvider>;
 };
 `;
 }
@@ -1504,14 +1860,23 @@ function main() {
 
   ensureDir(CSS_DIR);
   ensureDir(FLUENT_DIR);
+  ensureDir(FLUENT_V8_DIR);
   ensureDir(ADAPTERS_DIR);
 
   // ── Core outputs ──────────────────────────────────────────────────────
   console.log("  Core outputs:");
   emit(path.join(CSS_DIR, "global.css"), buildGlobalCSS(baseTokens, darkTokens));
   emit(path.join(CSS_DIR, "utilities.css"), buildUtilitiesCSS(baseTokens));
+
+  // ── Fluent UI v9 ──────────────────────────────────────────────────────
+  console.log("\n  Fluent UI v9 Adapter:");
   emit(path.join(FLUENT_DIR, "index.ts"), buildFluentAdapter());
   emit(path.join(FLUENT_DIR, "Provider.tsx"), buildProviderTSX());
+
+  // ── Fluent UI v8 ──────────────────────────────────────────────────────
+  console.log("\n  Fluent UI v8 Adapter:");
+  emit(path.join(FLUENT_V8_DIR, "index.ts"), buildFluentV8Adapter());
+  emit(path.join(FLUENT_V8_DIR, "Provider.tsx"), buildFluentV8ProviderTSX());
 
   // ── CSS Variable Override Adapters ────────────────────────────────────
   console.log("\n  CSS Variable Override Adapters:");
@@ -1543,7 +1908,7 @@ function main() {
   console.log("\n  Config Presets:");
   emit(path.join(ADAPTERS_DIR, "tailwind-preset.js"), buildTailwindPreset(baseTokens));
 
-  console.log("\n[RDS] Build complete — 19 artefacts generated.\n");
+  console.log("\n[RDS] Build complete — 21 artefacts generated.\n");
 }
 
 main();
