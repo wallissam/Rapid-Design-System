@@ -1,0 +1,11 @@
+{
+  "name": "rapid-design-system",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Framework-agnostic design token governance and synchronization layer",
+  "scripts": {
+    "build": "node scripts/build-tokens.js"
+  },
+  "devDependencies": {},
+  "license": "MIT"
+}

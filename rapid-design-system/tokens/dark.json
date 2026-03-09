@@ -1,0 +1,33 @@
+{
+  "color": {
+    "brand": {
+      "primary": "#479ef5",
+      "secondary": "#62abf5",
+      "tertiary": "#2886de"
+    },
+    "surface": {
+      "base": "#1b1b1b",
+      "raised": "#2d2d2d",
+      "overlay": "#383838"
+    },
+    "text": {
+      "primary": "#e0e0e0",
+      "secondary": "#adadad",
+      "on-brand": "#ffffff"
+    },
+    "border": {
+      "default": "#484848",
+      "strong": "#6a6a6a"
+    },
+    "status": {
+      "success": "#54b054",
+      "warning": "#f98845",
+      "danger": "#e34e5e"
+    }
+  },
+  "shadow": {
+    "sm": "0 1px 2px rgba(0, 0, 0, 0.40)",
+    "md": "0 2px 4px rgba(0, 0, 0, 0.44)",
+    "lg": "0 8px 16px rgba(0, 0, 0, 0.44)"
+  }
+}
