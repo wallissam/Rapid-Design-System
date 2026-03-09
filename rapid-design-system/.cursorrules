@@ -159,6 +159,17 @@ Capabilities: Import (JSON → Variables), Export (Variables → JSON), Lint (sc
 
 To test: Figma > Plugins > Development > Import plugin from manifest > point to `figma-plugin/manifest.json`.
 
+## Browser Extension
+
+Located in `browser-extension/`. Manifest V3, works in Chrome + Edge.
+- `manifest.json` — permissions: storage, activeTab
+- `content.js` — detects --rapid-* vars, injects floating palette panel
+- `popup.html/js` — toolbar popup showing detection status
+- Overrides persist per-domain via chrome.storage.local
+- Auto-applies saved overrides on page load
+
+To test: chrome://extensions > Developer mode > Load unpacked > select `browser-extension/`.
+
 ## Do NOT
 
 - Edit files in `packages/` directly (they're generated)

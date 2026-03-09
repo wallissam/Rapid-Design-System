@@ -3,6 +3,7 @@ scripts/
 demo/
 tests/
 figma-plugin/
+browser-extension/
 vscode-extension/
 playwright.config.js
 playwright-report/
