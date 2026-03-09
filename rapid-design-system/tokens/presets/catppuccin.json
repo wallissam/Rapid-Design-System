@@ -1,0 +1,24 @@
+{
+  "_preset": "Catppuccin Mocha / Latte",
+  "_source": "https://catppuccin.com",
+  "light": {
+    "color": {
+      "brand": { "primary": "#1e66f5", "secondary": "#7287fd", "tertiary": "#04a5e5" },
+      "surface": { "base": "#eff1f5", "raised": "#e6e9ef", "overlay": "#dce0e8", "disabled": "#e6e9ef" },
+      "text": { "primary": "#4c4f69", "secondary": "#6c6f85", "disabled": "#9ca0b0", "on-brand": "#eff1f5", "link": "#1e66f5", "link-hover": "#7287fd" },
+      "border": { "default": "#ccd0da", "strong": "#bcc0cc" },
+      "focus": { "ring": "#1e66f5" },
+      "status": { "info": "#04a5e5", "success": "#40a02b", "warning": "#df8e1d", "danger": "#d20f39" }
+    }
+  },
+  "dark": {
+    "color": {
+      "brand": { "primary": "#89b4fa", "secondary": "#b4befe", "tertiary": "#74c7ec" },
+      "surface": { "base": "#1e1e2e", "raised": "#313244", "overlay": "#45475a", "disabled": "#313244" },
+      "text": { "primary": "#cdd6f4", "secondary": "#a6adc8", "disabled": "#585b70", "on-brand": "#1e1e2e", "link": "#89b4fa", "link-hover": "#b4befe" },
+      "border": { "default": "#45475a", "strong": "#585b70" },
+      "focus": { "ring": "#89b4fa" },
+      "status": { "info": "#74c7ec", "success": "#a6e3a1", "warning": "#f9e2af", "danger": "#f38ba8" }
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "_preset": "Material Design 3",
+  "_source": "https://m3.material.io",
+  "light": {
+    "color": {
+      "brand": { "primary": "#6750a4", "secondary": "#7f67be", "tertiary": "#4f378b" },
+      "surface": { "base": "#fef7ff", "raised": "#f3edf7", "overlay": "#e8def8", "disabled": "#f3edf7" },
+      "text": { "primary": "#1d1b20", "secondary": "#49454f", "disabled": "#938f99", "on-brand": "#ffffff", "link": "#6750a4", "link-hover": "#4f378b" },
+      "border": { "default": "#cac4d0", "strong": "#938f99" },
+      "focus": { "ring": "#6750a4" },
+      "status": { "info": "#0b57d0", "success": "#146c2e", "warning": "#b3261e", "danger": "#b3261e" }
+    }
+  },
+  "dark": {
+    "color": {
+      "brand": { "primary": "#d0bcff", "secondary": "#e8deff", "tertiary": "#b69df8" },
+      "surface": { "base": "#141218", "raised": "#1d1b20", "overlay": "#2b2930", "disabled": "#1d1b20" },
+      "text": { "primary": "#e6e0e9", "secondary": "#cac4d0", "disabled": "#605d66", "on-brand": "#381e72", "link": "#d0bcff", "link-hover": "#e8deff" },
+      "border": { "default": "#49454f", "strong": "#605d66" },
+      "focus": { "ring": "#d0bcff" },
+      "status": { "info": "#a8c7fa", "success": "#6dd58c", "warning": "#f2b8b5", "danger": "#f2b8b5" }
+    }
+  }
+}

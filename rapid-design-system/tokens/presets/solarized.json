@@ -1,0 +1,24 @@
+{
+  "_preset": "Solarized",
+  "_source": "https://ethanschoonover.com/solarized",
+  "light": {
+    "color": {
+      "brand": { "primary": "#268bd2", "secondary": "#2aa198", "tertiary": "#6c71c4" },
+      "surface": { "base": "#fdf6e3", "raised": "#eee8d5", "overlay": "#e4ddc8", "disabled": "#eee8d5" },
+      "text": { "primary": "#073642", "secondary": "#586e75", "disabled": "#93a1a1", "on-brand": "#fdf6e3", "link": "#268bd2", "link-hover": "#2aa198" },
+      "border": { "default": "#d6cdb7", "strong": "#93a1a1" },
+      "focus": { "ring": "#268bd2" },
+      "status": { "info": "#268bd2", "success": "#859900", "warning": "#b58900", "danger": "#dc322f" }
+    }
+  },
+  "dark": {
+    "color": {
+      "brand": { "primary": "#268bd2", "secondary": "#2aa198", "tertiary": "#6c71c4" },
+      "surface": { "base": "#002b36", "raised": "#073642", "overlay": "#124a56", "disabled": "#073642" },
+      "text": { "primary": "#eee8d5", "secondary": "#93a1a1", "disabled": "#586e75", "on-brand": "#fdf6e3", "link": "#268bd2", "link-hover": "#2aa198" },
+      "border": { "default": "#124a56", "strong": "#586e75" },
+      "focus": { "ring": "#268bd2" },
+      "status": { "info": "#268bd2", "success": "#859900", "warning": "#b58900", "danger": "#dc322f" }
+    }
+  }
+}

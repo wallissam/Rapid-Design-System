@@ -208,6 +208,41 @@ body { display: flex; min-height: 100vh; }
 
 .btn-sm.primary:hover { opacity: 0.9; }
 
+/* ── Preset Selector ───────────────────────────────────────── */
+.preset-bar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rapid-spacing-xs);
+  padding-bottom: var(--rapid-spacing-sm);
+  border-bottom: 1px solid var(--rapid-color-border-default);
+}
+
+.preset-label {
+  font-size: var(--rapid-font-size-xs);
+  font-weight: var(--rapid-font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--rapid-color-text-secondary);
+}
+
+.preset-select {
+  width: 100%;
+  padding: 6px 8px;
+  font-size: var(--rapid-font-size-sm);
+  font-family: var(--rapid-font-family-base);
+  color: var(--rapid-color-text-primary);
+  background: var(--rapid-color-surface-base);
+  border: 1px solid var(--rapid-color-border-default);
+  border-radius: var(--rapid-radius-md);
+  cursor: pointer;
+  transition: border-color .15s;
+}
+
+.preset-select:focus {
+  outline: none;
+  border-color: var(--rapid-color-brand-primary);
+}
+
 /* ── Showcase Sections ─────────────────────────────────────── */
 .showcase-grid {
   display: grid;
@@ -620,6 +655,20 @@ body { display: flex; min-height: 100vh; }
       <button class="theme-toggle" role="switch" aria-checked="false" id="themeToggle" title="Toggle dark mode"></button>
     </div>
   </div>
+  <div class="preset-bar">
+    <span class="preset-label">Colour Preset</span>
+    <select class="preset-select" id="presetSelect">
+      <option value="">RDS Default</option>
+      <option value="github">GitHub Primer</option>
+      <option value="tailwind">Tailwind CSS</option>
+      <option value="material">Material Design 3</option>
+      <option value="nord">Nord</option>
+      <option value="catppuccin">Catppuccin</option>
+      <option value="solarized">Solarized</option>
+      <option value="radix">Radix UI</option>
+      <option value="one-dark">One Dark (Atom)</option>
+    </select>
+  </div>
   <div id="editorContainer"></div>
   <div class="sidebar-actions">
     <button class="btn-sm" id="resetBtn">Reset</button>
@@ -897,10 +946,46 @@ body { display: flex; min-height: 100vh; }
     "Status": [["--rapid-color-status-success","Success"],["--rapid-color-status-warning","Warning"],["--rapid-color-status-danger","Danger"]]
   };
 
+  // ── Colour Presets ──────────────────────────────────────────────
+  function flattenPreset(obj, prefix) {
+    const entries = {};
+    for (const [key, value] of Object.entries(obj)) {
+      if (key.startsWith("_")) continue;
+      const full = prefix ? `${prefix}-${key}` : key;
+      if (typeof value === "object" && value !== null) {
+        Object.assign(entries, flattenPreset(value, full));
+      } else {
+        entries[`--rapid-${full}`] = value;
+      }
+    }
+    return entries;
+  }
+
+  const presets = {
+    "github": {"light":{"color":{"brand":{"primary":"#1f6feb","secondary":"#0969da","tertiary":"#0550ae"},"surface":{"base":"#ffffff","raised":"#f6f8fa","overlay":"#eaeef2","disabled":"#f6f8fa"},"text":{"primary":"#1f2328","secondary":"#656d76","disabled":"#8b949e","on-brand":"#ffffff","link":"#0969da","link-hover":"#0550ae"},"border":{"default":"#d0d7de","strong":"#afb8c1"},"focus":{"ring":"#0969da"},"status":{"info":"#0969da","success":"#1a7f37","warning":"#9a6700","danger":"#cf222e"}}},"dark":{"color":{"brand":{"primary":"#58a6ff","secondary":"#79c0ff","tertiary":"#388bfd"},"surface":{"base":"#0d1117","raised":"#161b22","overlay":"#21262d","disabled":"#161b22"},"text":{"primary":"#e6edf3","secondary":"#8b949e","disabled":"#484f58","on-brand":"#ffffff","link":"#58a6ff","link-hover":"#79c0ff"},"border":{"default":"#30363d","strong":"#484f58"},"focus":{"ring":"#58a6ff"},"status":{"info":"#58a6ff","success":"#3fb950","warning":"#d29922","danger":"#f85149"}}}},
+    "tailwind": {"light":{"color":{"brand":{"primary":"#3b82f6","secondary":"#2563eb","tertiary":"#1d4ed8"},"surface":{"base":"#ffffff","raised":"#f8fafc","overlay":"#f1f5f9","disabled":"#f1f5f9"},"text":{"primary":"#0f172a","secondary":"#64748b","disabled":"#94a3b8","on-brand":"#ffffff","link":"#2563eb","link-hover":"#1d4ed8"},"border":{"default":"#e2e8f0","strong":"#cbd5e1"},"focus":{"ring":"#3b82f6"},"status":{"info":"#0ea5e9","success":"#22c55e","warning":"#f59e0b","danger":"#ef4444"}}},"dark":{"color":{"brand":{"primary":"#60a5fa","secondary":"#93bbfd","tertiary":"#3b82f6"},"surface":{"base":"#0f172a","raised":"#1e293b","overlay":"#334155","disabled":"#1e293b"},"text":{"primary":"#f1f5f9","secondary":"#94a3b8","disabled":"#475569","on-brand":"#ffffff","link":"#60a5fa","link-hover":"#93bbfd"},"border":{"default":"#334155","strong":"#475569"},"focus":{"ring":"#60a5fa"},"status":{"info":"#38bdf8","success":"#4ade80","warning":"#fbbf24","danger":"#f87171"}}}},
+    "material": {"light":{"color":{"brand":{"primary":"#6750a4","secondary":"#7f67be","tertiary":"#4f378b"},"surface":{"base":"#fef7ff","raised":"#f3edf7","overlay":"#e8def8","disabled":"#f3edf7"},"text":{"primary":"#1d1b20","secondary":"#49454f","disabled":"#938f99","on-brand":"#ffffff","link":"#6750a4","link-hover":"#4f378b"},"border":{"default":"#cac4d0","strong":"#938f99"},"focus":{"ring":"#6750a4"},"status":{"info":"#0b57d0","success":"#146c2e","warning":"#b3261e","danger":"#b3261e"}}},"dark":{"color":{"brand":{"primary":"#d0bcff","secondary":"#e8deff","tertiary":"#b69df8"},"surface":{"base":"#141218","raised":"#1d1b20","overlay":"#2b2930","disabled":"#1d1b20"},"text":{"primary":"#e6e0e9","secondary":"#cac4d0","disabled":"#605d66","on-brand":"#381e72","link":"#d0bcff","link-hover":"#e8deff"},"border":{"default":"#49454f","strong":"#605d66"},"focus":{"ring":"#d0bcff"},"status":{"info":"#a8c7fa","success":"#6dd58c","warning":"#f2b8b5","danger":"#f2b8b5"}}}},
+    "nord": {"light":{"color":{"brand":{"primary":"#5e81ac","secondary":"#81a1c1","tertiary":"#4c566a"},"surface":{"base":"#eceff4","raised":"#e5e9f0","overlay":"#d8dee9","disabled":"#e5e9f0"},"text":{"primary":"#2e3440","secondary":"#4c566a","disabled":"#9ba3ad","on-brand":"#eceff4","link":"#5e81ac","link-hover":"#81a1c1"},"border":{"default":"#d8dee9","strong":"#c0c8d4"},"focus":{"ring":"#5e81ac"},"status":{"info":"#5e81ac","success":"#a3be8c","warning":"#ebcb8b","danger":"#bf616a"}}},"dark":{"color":{"brand":{"primary":"#88c0d0","secondary":"#81a1c1","tertiary":"#5e81ac"},"surface":{"base":"#2e3440","raised":"#3b4252","overlay":"#434c5e","disabled":"#3b4252"},"text":{"primary":"#eceff4","secondary":"#d8dee9","disabled":"#616e7c","on-brand":"#2e3440","link":"#88c0d0","link-hover":"#81a1c1"},"border":{"default":"#434c5e","strong":"#4c566a"},"focus":{"ring":"#88c0d0"},"status":{"info":"#88c0d0","success":"#a3be8c","warning":"#ebcb8b","danger":"#bf616a"}}}},
+    "catppuccin": {"light":{"color":{"brand":{"primary":"#1e66f5","secondary":"#7287fd","tertiary":"#04a5e5"},"surface":{"base":"#eff1f5","raised":"#e6e9ef","overlay":"#dce0e8","disabled":"#e6e9ef"},"text":{"primary":"#4c4f69","secondary":"#6c6f85","disabled":"#9ca0b0","on-brand":"#eff1f5","link":"#1e66f5","link-hover":"#7287fd"},"border":{"default":"#ccd0da","strong":"#bcc0cc"},"focus":{"ring":"#1e66f5"},"status":{"info":"#04a5e5","success":"#40a02b","warning":"#df8e1d","danger":"#d20f39"}}},"dark":{"color":{"brand":{"primary":"#89b4fa","secondary":"#b4befe","tertiary":"#74c7ec"},"surface":{"base":"#1e1e2e","raised":"#313244","overlay":"#45475a","disabled":"#313244"},"text":{"primary":"#cdd6f4","secondary":"#a6adc8","disabled":"#585b70","on-brand":"#1e1e2e","link":"#89b4fa","link-hover":"#b4befe"},"border":{"default":"#45475a","strong":"#585b70"},"focus":{"ring":"#89b4fa"},"status":{"info":"#74c7ec","success":"#a6e3a1","warning":"#f9e2af","danger":"#f38ba8"}}}},
+    "solarized": {"light":{"color":{"brand":{"primary":"#268bd2","secondary":"#2aa198","tertiary":"#6c71c4"},"surface":{"base":"#fdf6e3","raised":"#eee8d5","overlay":"#e4ddc8","disabled":"#eee8d5"},"text":{"primary":"#073642","secondary":"#586e75","disabled":"#93a1a1","on-brand":"#fdf6e3","link":"#268bd2","link-hover":"#2aa198"},"border":{"default":"#d6cdb7","strong":"#93a1a1"},"focus":{"ring":"#268bd2"},"status":{"info":"#268bd2","success":"#859900","warning":"#b58900","danger":"#dc322f"}}},"dark":{"color":{"brand":{"primary":"#268bd2","secondary":"#2aa198","tertiary":"#6c71c4"},"surface":{"base":"#002b36","raised":"#073642","overlay":"#124a56","disabled":"#073642"},"text":{"primary":"#eee8d5","secondary":"#93a1a1","disabled":"#586e75","on-brand":"#fdf6e3","link":"#268bd2","link-hover":"#2aa198"},"border":{"default":"#124a56","strong":"#586e75"},"focus":{"ring":"#268bd2"},"status":{"info":"#268bd2","success":"#859900","warning":"#b58900","danger":"#dc322f"}}}},
+    "radix": {"light":{"color":{"brand":{"primary":"#3e63dd","secondary":"#5b7bd7","tertiary":"#2f4eb2"},"surface":{"base":"#ffffff","raised":"#f9f9fb","overlay":"#f0f0f3","disabled":"#f0f0f3"},"text":{"primary":"#11181c","secondary":"#687076","disabled":"#a0a7ad","on-brand":"#ffffff","link":"#3e63dd","link-hover":"#2f4eb2"},"border":{"default":"#dfe3e6","strong":"#c1c8cd"},"focus":{"ring":"#3e63dd"},"status":{"info":"#0091ff","success":"#30a46c","warning":"#ffc53d","danger":"#e5484d"}}},"dark":{"color":{"brand":{"primary":"#849dff","secondary":"#a5b4fc","tertiary":"#6e83d0"},"surface":{"base":"#111113","raised":"#19191b","overlay":"#222225","disabled":"#19191b"},"text":{"primary":"#eeeef0","secondary":"#9ba1a6","disabled":"#5c6166","on-brand":"#ffffff","link":"#849dff","link-hover":"#a5b4fc"},"border":{"default":"#2b2b2f","strong":"#3e3e44"},"focus":{"ring":"#849dff"},"status":{"info":"#52a9ff","success":"#4cc38a","warning":"#ffd60a","danger":"#ff6369"}}}},
+    "one-dark": {"light":{"color":{"brand":{"primary":"#4078f2","secondary":"#526fff","tertiary":"#a626a4"},"surface":{"base":"#fafafa","raised":"#f0f0f0","overlay":"#e5e5e6","disabled":"#f0f0f0"},"text":{"primary":"#383a42","secondary":"#696c77","disabled":"#a0a1a7","on-brand":"#ffffff","link":"#4078f2","link-hover":"#526fff"},"border":{"default":"#d3d3d5","strong":"#a0a1a7"},"focus":{"ring":"#4078f2"},"status":{"info":"#4078f2","success":"#50a14f","warning":"#c18401","danger":"#e45649"}}},"dark":{"color":{"brand":{"primary":"#61afef","secondary":"#c678dd","tertiary":"#56b6c2"},"surface":{"base":"#282c34","raised":"#2c313c","overlay":"#3e4451","disabled":"#2c313c"},"text":{"primary":"#abb2bf","secondary":"#7f848e","disabled":"#5c6370","on-brand":"#282c34","link":"#61afef","link-hover":"#c678dd"},"border":{"default":"#3e4451","strong":"#5c6370"},"focus":{"ring":"#61afef"},"status":{"info":"#61afef","success":"#98c379","warning":"#d19a66","danger":"#e06c75"}}}}
+  };
+
   let isDark = false;
   let userOverrides = {};
+  let activePreset = "";
 
-  function getCurrentDefaults() { return isDark ? darkTokens : lightTokens; }
+  function getCurrentDefaults() {
+    if (activePreset && presets[activePreset]) {
+      const p = presets[activePreset];
+      const mode = isDark ? "dark" : "light";
+      const presetTokens = flattenPreset(p[mode]?.color ? p[mode] : p.light, "");
+      const base = isDark ? darkTokens : lightTokens;
+      return { ...base, ...presetTokens };
+    }
+    return isDark ? darkTokens : lightTokens;
+  }
 
   function applyToken(prop, val) {
     root.style.setProperty(prop, val);
@@ -980,6 +1065,16 @@ body { display: flex; min-height: 100vh; }
     }
   }
 
+  // Preset selector
+  document.getElementById("presetSelect").addEventListener("change", (e) => {
+    activePreset = e.target.value;
+    userOverrides = {};
+    for (const prop of Object.keys(lightTokens)) root.style.removeProperty(prop);
+    applyAllDefaults();
+    buildEditor();
+    if (typeof Chart !== "undefined") requestAnimationFrame(renderCharts);
+  });
+
   // Theme toggle
   toggle.addEventListener("click", () => {
     isDark = !isDark;
@@ -995,6 +1090,8 @@ body { display: flex; min-height: 100vh; }
   // Reset
   document.getElementById("resetBtn").addEventListener("click", () => {
     userOverrides = {};
+    activePreset = "";
+    document.getElementById("presetSelect").value = "";
     for (const prop of Object.keys(lightTokens)) root.style.removeProperty(prop);
     applyAllDefaults();
     buildEditor();
