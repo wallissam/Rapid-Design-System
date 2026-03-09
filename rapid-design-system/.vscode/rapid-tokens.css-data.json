@@ -53,7 +53,7 @@
     },
     {
       "name": "--rapid-color-text-on-brand",
-      "description": "Token: color.text.on.brand\n\nLight: #ffffff\nDark: #ffffff",
+      "description": "Token: color.text.on-brand\n\nLight: #ffffff\nDark: #ffffff",
       "syntax": "<color>"
     },
     {
@@ -63,7 +63,7 @@
     },
     {
       "name": "--rapid-color-text-link-hover",
-      "description": "Token: color.text.link.hover\n\nLight: #115ea3\nDark: #62abf5",
+      "description": "Token: color.text.link-hover\n\nLight: #115ea3\nDark: #62abf5",
       "syntax": "<color>"
     },
     {
@@ -171,27 +171,27 @@
     },
     {
       "name": "--rapid-font-line-height-tight",
-      "description": "Token: font.line.height.tight\n\nLight: 1.2"
+      "description": "Token: font.line-height.tight\n\nLight: 1.2"
     },
     {
       "name": "--rapid-font-line-height-normal",
-      "description": "Token: font.line.height.normal\n\nLight: 1.5"
+      "description": "Token: font.line-height.normal\n\nLight: 1.5"
     },
     {
       "name": "--rapid-font-line-height-relaxed",
-      "description": "Token: font.line.height.relaxed\n\nLight: 1.75"
+      "description": "Token: font.line-height.relaxed\n\nLight: 1.75"
     },
     {
       "name": "--rapid-font-letter-spacing-tight",
-      "description": "Token: font.letter.spacing.tight\n\nLight: -0.02em"
+      "description": "Token: font.letter-spacing.tight\n\nLight: -0.02em"
     },
     {
       "name": "--rapid-font-letter-spacing-normal",
-      "description": "Token: font.letter.spacing.normal\n\nLight: 0em"
+      "description": "Token: font.letter-spacing.normal\n\nLight: 0em"
     },
     {
       "name": "--rapid-font-letter-spacing-wide",
-      "description": "Token: font.letter.spacing.wide\n\nLight: 0.05em"
+      "description": "Token: font.letter-spacing.wide\n\nLight: 0.05em"
     },
     {
       "name": "--rapid-radius-sm",

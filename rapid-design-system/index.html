@@ -112,11 +112,20 @@
 </head>
 <body>
 
-<button class="mode-toggle" onclick="
-  const d = document.documentElement;
-  d.setAttribute('data-theme', d.getAttribute('data-theme') === 'dark' ? '' : 'dark');
-  this.textContent = d.getAttribute('data-theme') === 'dark' ? 'Light Mode' : 'Dark Mode';
-">Dark Mode</button>
+<button class="mode-toggle" id="themeToggle" role="switch" aria-checked="false">Dark Mode</button>
+
+<script>
+  (function () {
+    const btn = document.getElementById("themeToggle");
+    btn.addEventListener("click", function () {
+      const d = document.documentElement;
+      const isDark = d.getAttribute("data-theme") === "dark";
+      d.setAttribute("data-theme", isDark ? "" : "dark");
+      btn.textContent = isDark ? "Dark Mode" : "Light Mode";
+      btn.setAttribute("aria-checked", String(!isDark));
+    });
+  })();
+</script>
 
 <div class="hero">
   <div class="logo">R D S</div>

@@ -148,6 +148,21 @@ function flatten(obj, parentKey = "") {
   return entries;
 }
 
+/** Same as flatten() but uses "." as the path separator, preserving hyphens within key names. */
+function flattenDotPath(obj, parentKey = "") {
+  const entries = [];
+  for (const [key, value] of Object.entries(obj)) {
+    if (key === "_comment" || !isSafeKey(key)) continue;
+    const fullKey = parentKey ? `${parentKey}.${key}` : key;
+    if (typeof value === "object" && value !== null && !Array.isArray(value)) {
+      entries.push(...flattenDotPath(value, fullKey));
+    } else {
+      entries.push([fullKey, value]);
+    }
+  }
+  return entries;
+}
+
 /**
  * Sanitize a token value before emitting it into CSS.
  * Rejects values containing characters that could break out of
@@ -2633,17 +2648,18 @@ ${tokenList.join(",\n")}
  * and light/dark values — zero extension install required.
  */
 function buildCSSCustomData(baseTokens, darkTokens) {
-  const baseEntries = flatten(baseTokens);
+  const baseDotEntries = flattenDotPath(baseTokens);
   const darkEntries = flatten(darkTokens);
-  const darkMap = new Map(darkEntries);
+  const darkMap = new Map(darkEntries); // keyed by hyphen-path
 
   const properties = [];
 
-  for (const [key, value] of baseEntries) {
-    const cssVar = toCSSVar(key);
-    const darkValue = darkMap.get(key);
+  for (const [dotPath, value] of baseDotEntries) {
+    const cssKey = dotPath.replace(/\./g, "-");
+    const cssVar = toCSSVar(cssKey);
+    const darkValue = darkMap.get(cssKey);
 
-    let desc = `Token: ${key.replace(/-/g, ".")}`;
+    let desc = `Token: ${dotPath}`;
     desc += `\n\nLight: ${value}`;
     if (darkValue) desc += `\nDark: ${darkValue}`;
 

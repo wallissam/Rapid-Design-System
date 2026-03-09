@@ -5,9 +5,6 @@
   "main": "code.js",
   "ui": "ui.html",
   "editorType": ["figma"],
-  "networkAccess": {
-    "allowedDomains": ["*"]
-  },
   "capabilities": ["variableRead", "variableWrite"],
   "permissions": ["currentuser"]
 }

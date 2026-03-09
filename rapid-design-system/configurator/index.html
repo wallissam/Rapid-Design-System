@@ -360,7 +360,7 @@ body { display: flex; min-height: 100vh; }
   // ── Preview ──
   function renderPreview() {
     const grid = document.getElementById("previewGrid");
-    grid.innerHTML = "";
+    grid.replaceChildren();
     const cards = [
       () => { const c = mk("div","p-card"); c.style.gridColumn = "1 / -1"; const t = mk("div","p-title"); t.textContent = "Colour Palette"; const sw = mk("div","p-swatches"); for (const k of ["brand.primary","brand.secondary","brand.tertiary","surface.base","surface.raised","surface.overlay","text.primary","text.secondary","border.default","status.info","status.success","status.warning","status.danger"]) { const s = mk("div","p-swatch"); s.style.background = `var(--rapid-color-${k.replace(/\./g,"-")})`; sw.appendChild(s); } c.appendChild(t); c.appendChild(sw); return c; },
       () => { const c = mk("div","p-card"); const t = mk("div","p-title"); t.textContent = "Buttons"; const b1 = mk("button","p-btn p-btn-primary"); b1.textContent = "Primary"; const b2 = mk("button","p-btn p-btn-outline"); b2.textContent = "Outline"; const b3 = mk("button","p-btn p-btn-success"); b3.textContent = "Success"; const b4 = mk("button","p-btn p-btn-danger"); b4.textContent = "Danger"; c.appendChild(t); c.appendChild(b1); c.appendChild(b2); c.appendChild(b3); c.appendChild(b4); return c; },

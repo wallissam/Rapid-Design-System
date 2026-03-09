@@ -378,7 +378,7 @@ window.onmessage = (event) => {
       const list = document.getElementById("lint-results");
       const header = document.getElementById("lint-header");
       const countBadge = document.getElementById("lint-count");
-      list.innerHTML = "";
+      list.replaceChildren();
 
       if (msg.message) {
         showStatus("lint-status", "info", msg.message);
