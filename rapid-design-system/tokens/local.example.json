@@ -1,49 +1,28 @@
 {
   "_comment": [
-    "Copy this file to tokens/local.json to activate local overrides.",
-    "The build script deep-merges local.json ON TOP of base.json,",
-    "so you can override existing tokens or add entirely new ones.",
-    "New tokens get CSS variables, utility classes, and Tailwind",
-    "integration automatically — no build script changes needed."
+    "Copy this file to tokens/local.json to activate.",
+    "The build deep-merges it on top of base.json.",
+    "Only include values you want to CHANGE or ADD.",
+    "Keys named _comment are stripped during build."
   ],
 
   "color": {
     "brand": {
-      "_comment": "Override the standard brand ramp for your product",
+      "_comment": "Override: change the standard brand ramp",
       "primary": "#e74c3c",
       "secondary": "#c0392b",
       "tertiary": "#a93226"
     },
     "accent": {
-      "_comment": "New token branch — extends the system",
+      "_comment": "Extension: entirely new token branch",
       "coral": "#ff6b6b",
       "teal": "#2ec4b6",
       "gold": "#f4d03f"
-    },
-    "status": {
-      "info": "#3498db",
-      "_comment": "New status level alongside success/warning/danger"
     }
   },
 
   "spacing": {
-    "_comment": "Add a 3xl tier that doesn't exist in base",
+    "_comment": "Extension: add a 3xl tier that doesn't exist in base",
     "3xl": "64px"
-  },
-
-  "duration": {
-    "_comment": "Entirely new token category for transitions",
-    "fast": "100ms",
-    "normal": "200ms",
-    "slow": "400ms"
-  },
-
-  "z": {
-    "_comment": "Z-index scale — useful for layering governance",
-    "dropdown": "1000",
-    "sticky": "1100",
-    "overlay": "1300",
-    "modal": "1400",
-    "toast": "1500"
   }
 }
