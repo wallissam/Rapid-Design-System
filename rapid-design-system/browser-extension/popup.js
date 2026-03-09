@@ -2,46 +2,62 @@ const statusEl = document.getElementById("status");
 const statusDot = document.getElementById("statusDot");
 const statusText = document.getElementById("statusText");
 const toggleBtn = document.getElementById("toggleBtn");
+const darkBtn = document.getElementById("darkBtn");
 const resetBtn = document.getElementById("resetBtn");
+const overrideInfo = document.getElementById("overrideInfo");
 
-let detected = false;
+let tokenCount = 0;
 
 function updateUI(count) {
-  detected = count > 0;
-  if (detected) {
+  tokenCount = count;
+  if (count > 0) {
     statusEl.className = "status detected";
     statusDot.className = "dot green";
     statusText.textContent = `${count} RDS token${count === 1 ? "" : "s"} detected`;
     toggleBtn.disabled = false;
-    resetBtn.disabled = false;
+    darkBtn.disabled = false;
+    checkOverrides();
   } else {
     statusEl.className = "status not-detected";
     statusDot.className = "dot grey";
     statusText.textContent = "No RDS tokens found on this page";
     toggleBtn.disabled = true;
-    resetBtn.disabled = true;
+    darkBtn.disabled = true;
+    resetBtn.style.display = "none";
   }
 }
 
-// Ask the content script to detect tokens
+function checkOverrides() {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    if (!tabs[0]) return;
+    const hostname = new URL(tabs[0].url).hostname;
+    const key = "rds-overrides:" + hostname;
+    chrome.storage.local.get(key, (result) => {
+      const overrides = result[key] || {};
+      const n = Object.keys(overrides).length;
+      if (n > 0) {
+        overrideInfo.textContent = `${n} token override${n > 1 ? "s" : ""} active on this domain`;
+        overrideInfo.style.display = "block";
+        resetBtn.style.display = "block";
+      } else {
+        overrideInfo.style.display = "none";
+        resetBtn.style.display = "none";
+      }
+    });
+  });
+}
+
 chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
   if (!tabs[0]) return;
-
   chrome.tabs.sendMessage(tabs[0].id, { type: "detect" }, () => {
-    if (chrome.runtime.lastError) {
-      updateUI(0);
-    }
+    if (chrome.runtime.lastError) updateUI(0);
   });
 });
 
-// Listen for detection result
 chrome.runtime.onMessage.addListener((msg) => {
-  if (msg.type === "detect-result") {
-    updateUI(msg.count);
-  }
+  if (msg.type === "detect-result") updateUI(msg.count);
 });
 
-// Toggle panel
 toggleBtn.addEventListener("click", () => {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     if (!tabs[0]) return;
@@ -50,45 +66,47 @@ toggleBtn.addEventListener("click", () => {
   });
 });
 
-// Reset overrides
+darkBtn.addEventListener("click", () => {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    if (!tabs[0]) return;
+    chrome.scripting.executeScript({
+      target: { tabId: tabs[0].id },
+      func: () => {
+        const html = document.documentElement;
+        if (html.getAttribute("data-theme") === "dark") html.removeAttribute("data-theme");
+        else html.setAttribute("data-theme", "dark");
+      },
+    });
+  });
+});
+
 resetBtn.addEventListener("click", () => {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     if (!tabs[0]) return;
     const hostname = new URL(tabs[0].url).hostname;
-    const key = "rds-overrides:" + hostname;
-    chrome.storage.local.remove(key, () => {
+    chrome.storage.local.remove("rds-overrides:" + hostname, () => {
       chrome.tabs.reload(tabs[0].id);
       window.close();
     });
   });
 });
 
-// Auto-detect after a short delay (content script might need time)
 setTimeout(() => {
-  if (!detected) {
+  if (tokenCount === 0) {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (!tabs[0]) return;
       chrome.scripting?.executeScript?.({
         target: { tabId: tabs[0].id },
         func: () => {
-          const styles = getComputedStyle(document.documentElement);
           let count = 0;
           for (const sheet of document.styleSheets) {
-            try {
-              for (const rule of sheet.cssRules) {
-                if (rule.cssText.includes("--rapid-")) count++;
-              }
-            } catch (e) {}
+            try { for (const r of sheet.cssRules) { if (r.cssText.includes("--rapid-")) count++; } }
+            catch {}
           }
           return count;
         },
-      }).then((results) => {
-        if (results?.[0]?.result > 0) {
-          updateUI(results[0].result);
-        } else {
-          updateUI(0);
-        }
-      }).catch(() => updateUI(0));
+      }).then((r) => updateUI(r?.[0]?.result > 0 ? r[0].result : 0))
+        .catch(() => updateUI(0));
     });
   }
 }, 300);
