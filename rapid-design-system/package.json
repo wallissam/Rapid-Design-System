@@ -76,6 +76,8 @@
     "check:contrast": "node scripts/check-contrast.js",
     "audit": "node scripts/audit-tokens.js",
     "export:native": "node scripts/export-native.js",
+    "migrate": "node scripts/migrate.js",
+    "generate:schema": "node scripts/generate-schema.js",
     "demo": "npx -y serve . -l 3000 --no-clipboard",
     "pack:preview": "npm pack --dry-run"
   },

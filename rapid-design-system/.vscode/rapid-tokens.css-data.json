@@ -266,6 +266,22 @@
       "description": "Token: duration.slow\n\nLight: 400ms"
     },
     {
+      "name": "--rapid-easing-default",
+      "description": "Token: easing.default\n\nLight: cubic-bezier(0.4, 0, 0.2, 1)"
+    },
+    {
+      "name": "--rapid-easing-in",
+      "description": "Token: easing.in\n\nLight: cubic-bezier(0.4, 0, 1, 1)"
+    },
+    {
+      "name": "--rapid-easing-out",
+      "description": "Token: easing.out\n\nLight: cubic-bezier(0, 0, 0.2, 1)"
+    },
+    {
+      "name": "--rapid-easing-spring",
+      "description": "Token: easing.spring\n\nLight: cubic-bezier(0.175, 0.885, 0.32, 1.275)"
+    },
+    {
       "name": "--rapid-z-dropdown",
       "description": "Token: z.dropdown\n\nLight: 1000"
     },

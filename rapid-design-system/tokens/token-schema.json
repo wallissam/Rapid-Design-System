@@ -1,0 +1,480 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Rapid Design System Token File",
+  "description": "Schema for tokens/base.json, tokens/dark.json, and tokens/local.json. Additional properties are allowed for extensibility.",
+  "type": "object",
+  "properties": {
+    "color": {
+      "type": "object",
+      "properties": {
+        "brand": {
+          "type": "object",
+          "properties": {
+            "primary": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$",
+              "description": "Hex colour"
+            },
+            "secondary": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$",
+              "description": "Hex colour"
+            },
+            "tertiary": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$",
+              "description": "Hex colour"
+            }
+          },
+          "additionalProperties": true
+        },
+        "surface": {
+          "type": "object",
+          "properties": {
+            "base": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$",
+              "description": "Hex colour"
+            },
+            "raised": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$",
+              "description": "Hex colour"
+            },
+            "overlay": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$",
+              "description": "Hex colour"
+            },
+            "disabled": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$",
+              "description": "Hex colour"
+            }
+          },
+          "additionalProperties": true
+        },
+        "text": {
+          "type": "object",
+          "properties": {
+            "primary": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$",
+              "description": "Hex colour"
+            },
+            "secondary": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$",
+              "description": "Hex colour"
+            },
+            "disabled": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$",
+              "description": "Hex colour"
+            },
+            "on-brand": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$",
+              "description": "Hex colour"
+            },
+            "link": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$",
+              "description": "Hex colour"
+            },
+            "link-hover": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$",
+              "description": "Hex colour"
+            }
+          },
+          "additionalProperties": true
+        },
+        "border": {
+          "type": "object",
+          "properties": {
+            "default": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$",
+              "description": "Hex colour"
+            },
+            "strong": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$",
+              "description": "Hex colour"
+            }
+          },
+          "additionalProperties": true
+        },
+        "focus": {
+          "type": "object",
+          "properties": {
+            "ring": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$",
+              "description": "Hex colour"
+            }
+          },
+          "additionalProperties": true
+        },
+        "status": {
+          "type": "object",
+          "properties": {
+            "info": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$",
+              "description": "Hex colour"
+            },
+            "success": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$",
+              "description": "Hex colour"
+            },
+            "warning": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$",
+              "description": "Hex colour"
+            },
+            "danger": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$",
+              "description": "Hex colour"
+            }
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "spacing": {
+      "type": "object",
+      "properties": {
+        "xs": {
+          "type": "string",
+          "pattern": "^\\d+(\\.\\d+)?px$",
+          "description": "Pixel value"
+        },
+        "sm": {
+          "type": "string",
+          "pattern": "^\\d+(\\.\\d+)?px$",
+          "description": "Pixel value"
+        },
+        "md": {
+          "type": "string",
+          "pattern": "^\\d+(\\.\\d+)?px$",
+          "description": "Pixel value"
+        },
+        "lg": {
+          "type": "string",
+          "pattern": "^\\d+(\\.\\d+)?px$",
+          "description": "Pixel value"
+        },
+        "xl": {
+          "type": "string",
+          "pattern": "^\\d+(\\.\\d+)?px$",
+          "description": "Pixel value"
+        },
+        "2xl": {
+          "type": "string",
+          "pattern": "^\\d+(\\.\\d+)?px$",
+          "description": "Pixel value"
+        }
+      },
+      "additionalProperties": true
+    },
+    "font": {
+      "type": "object",
+      "properties": {
+        "family": {
+          "type": "object",
+          "properties": {
+            "base": {
+              "type": "string"
+            },
+            "mono": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": true
+        },
+        "size": {
+          "type": "object",
+          "properties": {
+            "xs": {
+              "type": "string",
+              "pattern": "^\\d+(\\.\\d+)?px$",
+              "description": "Pixel value"
+            },
+            "sm": {
+              "type": "string",
+              "pattern": "^\\d+(\\.\\d+)?px$",
+              "description": "Pixel value"
+            },
+            "md": {
+              "type": "string",
+              "pattern": "^\\d+(\\.\\d+)?px$",
+              "description": "Pixel value"
+            },
+            "lg": {
+              "type": "string",
+              "pattern": "^\\d+(\\.\\d+)?px$",
+              "description": "Pixel value"
+            },
+            "xl": {
+              "type": "string",
+              "pattern": "^\\d+(\\.\\d+)?px$",
+              "description": "Pixel value"
+            },
+            "2xl": {
+              "type": "string",
+              "pattern": "^\\d+(\\.\\d+)?px$",
+              "description": "Pixel value"
+            }
+          },
+          "additionalProperties": true
+        },
+        "weight": {
+          "type": "object",
+          "properties": {
+            "regular": {
+              "type": "string",
+              "pattern": "^\\d+(\\.\\d+)?$",
+              "description": "Numeric value"
+            },
+            "semibold": {
+              "type": "string",
+              "pattern": "^\\d+(\\.\\d+)?$",
+              "description": "Numeric value"
+            },
+            "bold": {
+              "type": "string",
+              "pattern": "^\\d+(\\.\\d+)?$",
+              "description": "Numeric value"
+            }
+          },
+          "additionalProperties": true
+        },
+        "line-height": {
+          "type": "object",
+          "properties": {
+            "tight": {
+              "type": "string",
+              "pattern": "^\\d+(\\.\\d+)?$",
+              "description": "Numeric value"
+            },
+            "normal": {
+              "type": "string",
+              "pattern": "^\\d+(\\.\\d+)?$",
+              "description": "Numeric value"
+            },
+            "relaxed": {
+              "type": "string",
+              "pattern": "^\\d+(\\.\\d+)?$",
+              "description": "Numeric value"
+            }
+          },
+          "additionalProperties": true
+        },
+        "letter-spacing": {
+          "type": "object",
+          "properties": {
+            "tight": {
+              "type": "string",
+              "description": "Em value"
+            },
+            "normal": {
+              "type": "string",
+              "description": "Em value"
+            },
+            "wide": {
+              "type": "string",
+              "description": "Em value"
+            }
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "radius": {
+      "type": "object",
+      "properties": {
+        "sm": {
+          "type": "string",
+          "pattern": "^\\d+(\\.\\d+)?px$",
+          "description": "Pixel value"
+        },
+        "md": {
+          "type": "string",
+          "pattern": "^\\d+(\\.\\d+)?px$",
+          "description": "Pixel value"
+        },
+        "lg": {
+          "type": "string",
+          "pattern": "^\\d+(\\.\\d+)?px$",
+          "description": "Pixel value"
+        },
+        "xl": {
+          "type": "string",
+          "pattern": "^\\d+(\\.\\d+)?px$",
+          "description": "Pixel value"
+        },
+        "round": {
+          "type": "string",
+          "pattern": "^\\d+(\\.\\d+)?px$",
+          "description": "Pixel value"
+        }
+      },
+      "additionalProperties": true
+    },
+    "border": {
+      "type": "object",
+      "properties": {
+        "width": {
+          "type": "object",
+          "properties": {
+            "thin": {
+              "type": "string",
+              "pattern": "^\\d+(\\.\\d+)?px$",
+              "description": "Pixel value"
+            },
+            "thick": {
+              "type": "string",
+              "pattern": "^\\d+(\\.\\d+)?px$",
+              "description": "Pixel value"
+            }
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "shadow": {
+      "type": "object",
+      "properties": {
+        "sm": {
+          "type": "string"
+        },
+        "md": {
+          "type": "string"
+        },
+        "lg": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "focus": {
+      "type": "object",
+      "properties": {
+        "width": {
+          "type": "string",
+          "pattern": "^\\d+(\\.\\d+)?px$",
+          "description": "Pixel value"
+        },
+        "offset": {
+          "type": "string",
+          "pattern": "^\\d+(\\.\\d+)?px$",
+          "description": "Pixel value"
+        }
+      },
+      "additionalProperties": true
+    },
+    "opacity": {
+      "type": "object",
+      "properties": {
+        "disabled": {
+          "type": "string",
+          "pattern": "^\\d+(\\.\\d+)?$",
+          "description": "Numeric value"
+        },
+        "hover": {
+          "type": "string",
+          "pattern": "^\\d+(\\.\\d+)?$",
+          "description": "Numeric value"
+        },
+        "subtle": {
+          "type": "string",
+          "pattern": "^\\d+(\\.\\d+)?$",
+          "description": "Numeric value"
+        }
+      },
+      "additionalProperties": true
+    },
+    "duration": {
+      "type": "object",
+      "properties": {
+        "fast": {
+          "type": "string",
+          "pattern": "^\\d+ms$",
+          "description": "Duration in ms"
+        },
+        "normal": {
+          "type": "string",
+          "pattern": "^\\d+ms$",
+          "description": "Duration in ms"
+        },
+        "slow": {
+          "type": "string",
+          "pattern": "^\\d+ms$",
+          "description": "Duration in ms"
+        }
+      },
+      "additionalProperties": true
+    },
+    "easing": {
+      "type": "object",
+      "properties": {
+        "default": {
+          "type": "string",
+          "description": "CSS easing function"
+        },
+        "in": {
+          "type": "string",
+          "description": "CSS easing function"
+        },
+        "out": {
+          "type": "string",
+          "description": "CSS easing function"
+        },
+        "spring": {
+          "type": "string",
+          "description": "CSS easing function"
+        }
+      },
+      "additionalProperties": true
+    },
+    "z": {
+      "type": "object",
+      "properties": {
+        "dropdown": {
+          "type": "string",
+          "pattern": "^\\d+(\\.\\d+)?$",
+          "description": "Numeric value"
+        },
+        "sticky": {
+          "type": "string",
+          "pattern": "^\\d+(\\.\\d+)?$",
+          "description": "Numeric value"
+        },
+        "overlay": {
+          "type": "string",
+          "pattern": "^\\d+(\\.\\d+)?$",
+          "description": "Numeric value"
+        },
+        "modal": {
+          "type": "string",
+          "pattern": "^\\d+(\\.\\d+)?$",
+          "description": "Numeric value"
+        },
+        "toast": {
+          "type": "string",
+          "pattern": "^\\d+(\\.\\d+)?$",
+          "description": "Numeric value"
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

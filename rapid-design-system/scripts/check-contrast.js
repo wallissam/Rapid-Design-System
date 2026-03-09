@@ -69,6 +69,90 @@ function contrastRatio(hex1, hex2) {
   return (lighter + 0.05) / (darker + 0.05);
 }
 
+function rgbToHex({ r, g, b }) {
+  const h = (v) => Math.round(Math.max(0, Math.min(1, v)) * 255).toString(16).padStart(2, "0");
+  return `#${h(r)}${h(g)}${h(b)}`;
+}
+
+function rgbToHSL({ r, g, b }) {
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  let h = 0, s = 0;
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+    else if (max === g) h = ((b - r) / d + 2) / 6;
+    else h = ((r - g) / d + 4) / 6;
+  }
+  return { h, s, l };
+}
+
+function hslToRGB({ h, s, l }) {
+  if (s === 0) return { r: l, g: l, b: l };
+  const hue2rgb = (p, q, t) => {
+    if (t < 0) t += 1; if (t > 1) t -= 1;
+    if (t < 1/6) return p + (q - p) * 6 * t;
+    if (t < 1/2) return q;
+    if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+    return p;
+  };
+  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+  const p = 2 * l - q;
+  return { r: hue2rgb(p, q, h + 1/3), g: hue2rgb(p, q, h), b: hue2rgb(p, q, h - 1/3) };
+}
+
+/**
+ * Find the nearest colour to `fgHex` that achieves the target
+ * contrast ratio against `bgHex`.  Adjusts lightness in HSL space
+ * using binary search.
+ */
+function suggestCompliantColor(fgHex, bgHex, targetRatio) {
+  const fgRGB = hexToRGB(fgHex);
+  const bgRGB = hexToRGB(bgHex);
+  if (!fgRGB || !bgRGB) return null;
+
+  const bgLum = relativeLuminance(bgRGB);
+  const fgHSL = rgbToHSL(fgRGB);
+
+  // Try darkening and lightening; pick the one closer to original
+  const candidates = [];
+
+  for (const direction of ["darken", "lighten"]) {
+    let lo = direction === "darken" ? 0 : fgHSL.l;
+    let hi = direction === "darken" ? fgHSL.l : 1;
+
+    for (let i = 0; i < 30; i++) {
+      const mid = (lo + hi) / 2;
+      const testRGB = hslToRGB({ h: fgHSL.h, s: fgHSL.s, l: mid });
+      const testLum = relativeLuminance(testRGB);
+      const lighter = Math.max(testLum, bgLum);
+      const darker = Math.min(testLum, bgLum);
+      const ratio = (lighter + 0.05) / (darker + 0.05);
+
+      if (direction === "darken") {
+        if (ratio >= targetRatio) lo = mid; else hi = mid;
+      } else {
+        if (ratio >= targetRatio) hi = mid; else lo = mid;
+      }
+    }
+
+    const finalL = direction === "darken" ? lo : hi;
+    const finalRGB = hslToRGB({ h: fgHSL.h, s: fgHSL.s, l: finalL });
+    const finalHex = rgbToHex(finalRGB);
+    const finalRatio = contrastRatio(finalHex, bgHex);
+
+    if (finalRatio && finalRatio >= targetRatio) {
+      const distance = Math.abs(finalL - fgHSL.l);
+      candidates.push({ hex: finalHex, ratio: finalRatio, distance });
+    }
+  }
+
+  if (candidates.length === 0) return null;
+  candidates.sort((a, b) => a.distance - b.distance);
+  return candidates[0];
+}
+
 // ---------------------------------------------------------------------------
 // Token resolution (deep nested path → value)
 // ---------------------------------------------------------------------------
@@ -164,7 +248,12 @@ function checkMode(label, tokens) {
     else if (status === "WARN") warn++;
     else fail++;
 
-    results.push({ ...pair, fgVal, bgVal, ratio, status });
+    let suggestion = null;
+    if (status !== "PASS") {
+      suggestion = suggestCompliantColor(fgVal, bgVal, threshold);
+    }
+
+    results.push({ ...pair, fgVal, bgVal, ratio, status, suggestion });
   }
 
   return { label, results, pass, fail, warn };
@@ -183,7 +272,11 @@ function printResults(modeResult) {
     const i = icon[r.status];
     const c = colour[r.status];
     const ratio = r.ratio.toFixed(2).padStart(5);
-    console.log(`  ${c}${i}${reset} ${ratio}:1  ${r.context.padEnd(35)} ${r.fgVal} on ${r.bgVal}`);
+    let line = `  ${c}${i}${reset} ${ratio}:1  ${r.context.padEnd(35)} ${r.fgVal} on ${r.bgVal}`;
+    if (r.suggestion) {
+      line += `  → try ${r.suggestion.hex} (${r.suggestion.ratio.toFixed(1)}:1)`;
+    }
+    console.log(line);
   }
 
   console.log(`\n  ${pass} pass, ${warn} warning, ${fail} fail`);
