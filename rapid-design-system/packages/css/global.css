@@ -97,3 +97,9 @@
   --rapid-shadow-md: 0 2px 4px rgba(0, 0, 0, 0.44);
   --rapid-shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.44);
 }
+
+[data-theme="contoso"] {
+  --rapid-color-brand-primary: #7c3aed;
+  --rapid-color-brand-secondary: #6d28d9;
+  --rapid-color-brand-tertiary: #5b21b6;
+}

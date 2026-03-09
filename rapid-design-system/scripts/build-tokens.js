@@ -202,12 +202,67 @@ function emit(filePath, content, label) {
 }
 
 /**
+ * Resolve $-references in token values.  A value starting with "$"
+ * refers to another token path using dot notation:
+ *   "color.action.primary": "$color.brand.primary"
+ * resolves to the value of color.brand.primary.
+ * This enables semantic aliasing without duplicating values.
+ */
+function resolveAliases(obj) {
+  const flat = {};
+  function collectFlat(o, prefix) {
+    for (const [k, v] of Object.entries(o)) {
+      if (k === "_comment" || !isSafeKey(k)) continue;
+      const path = prefix ? `${prefix}.${k}` : k;
+      if (typeof v === "object" && v !== null && !Array.isArray(v)) {
+        collectFlat(v, path);
+      } else {
+        flat[path] = v;
+      }
+    }
+  }
+  collectFlat(obj, "");
+
+  let changed = true;
+  let depth = 0;
+  while (changed && depth < 20) {
+    changed = false;
+    depth++;
+    for (const [key, val] of Object.entries(flat)) {
+      if (typeof val === "string" && val.startsWith("$")) {
+        const ref = val.slice(1);
+        if (flat[ref] !== undefined && !String(flat[ref]).startsWith("$")) {
+          flat[key] = flat[ref];
+          changed = true;
+        }
+      }
+    }
+  }
+
+  const result = {};
+  for (const [dottedKey, val] of Object.entries(flat)) {
+    const parts = dottedKey.split(".");
+    let cursor = result;
+    for (let i = 0; i < parts.length - 1; i++) {
+      if (!(parts[i] in cursor)) cursor[parts[i]] = {};
+      cursor = cursor[parts[i]];
+    }
+    cursor[parts[parts.length - 1]] = val;
+  }
+  return result;
+}
+
+/**
  * Load and merge optional local token files onto the canonical tokens.
- * Returns { tokens, dark, stats } where stats describes what was merged.
+ * Also loads named brand themes from tokens/themes/*.json.
+ * Returns { tokens, dark, themes, stats }.
  */
 function loadAndMergeTokens() {
-  const baseTokens = readJSON(path.join(TOKENS_DIR, "base.json"));
-  const darkTokens = readJSON(path.join(TOKENS_DIR, "dark.json"));
+  let baseTokens = readJSON(path.join(TOKENS_DIR, "base.json"));
+  let darkTokens = readJSON(path.join(TOKENS_DIR, "dark.json"));
+
+  baseTokens = resolveAliases(baseTokens);
+  darkTokens = resolveAliases(darkTokens);
 
   const localPath = path.join(TOKENS_DIR, "local.json");
   const localDarkPath = path.join(TOKENS_DIR, "local-dark.json");
@@ -215,17 +270,14 @@ function loadAndMergeTokens() {
   const localDark = readJSONIfExists(localDarkPath);
 
   const baseFlatKeys = flatten(baseTokens).map(([k]) => k);
-  const darkFlatKeys = flatten(darkTokens).map(([k]) => k);
 
   let mergedBase = baseTokens;
   let mergedDark = darkTokens;
-  const stats = { localLoaded: false, localDarkLoaded: false, overrides: 0, extensions: 0 };
+  const stats = { localLoaded: false, localDarkLoaded: false, overrides: 0, extensions: 0, themes: [] };
 
   if (local) {
-    mergedBase = deepMerge(baseTokens, local);
+    mergedBase = deepMerge(baseTokens, resolveAliases(local));
     stats.localLoaded = true;
-
-    const mergedFlatKeys = flatten(mergedBase).map(([k]) => k);
     const localFlatKeys = flatten(local).map(([k]) => k);
     const baseSet = new Set(baseFlatKeys);
     for (const k of localFlatKeys) {
@@ -235,11 +287,23 @@ function loadAndMergeTokens() {
   }
 
   if (localDark) {
-    mergedDark = deepMerge(darkTokens, localDark);
+    mergedDark = deepMerge(darkTokens, resolveAliases(localDark));
     stats.localDarkLoaded = true;
   }
 
-  return { tokens: mergedBase, dark: mergedDark, stats };
+  // Named brand themes from tokens/themes/*.json
+  const themes = {};
+  const themesDir = path.join(TOKENS_DIR, "themes");
+  if (fs.existsSync(themesDir)) {
+    for (const file of fs.readdirSync(themesDir).filter((f) => f.endsWith(".json"))) {
+      const name = file.replace(/\.json$/, "");
+      const raw = readJSON(path.join(themesDir, file));
+      themes[name] = resolveAliases(raw);
+      stats.themes.push(name);
+    }
+  }
+
+  return { tokens: mergedBase, dark: mergedDark, themes, stats };
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -250,7 +314,7 @@ function loadAndMergeTokens() {
 // global.css — :root + [data-theme="dark"]
 // ---------------------------------------------------------------------------
 
-function buildGlobalCSS(baseTokens, darkTokens) {
+function buildGlobalCSS(baseTokens, darkTokens, themes) {
   const baseEntries = flatten(baseTokens);
   const darkEntries = flatten(darkTokens);
 
@@ -269,6 +333,20 @@ function buildGlobalCSS(baseTokens, darkTokens) {
     css += `  ${toCSSVar(key)}: ${sanitizeCSSValue(value)};\n`;
   }
   css += `}\n`;
+
+  // Named brand themes
+  if (themes && Object.keys(themes).length > 0) {
+    for (const [name, themeTokens] of Object.entries(themes)) {
+      const entries = flatten(themeTokens);
+      if (entries.length === 0) continue;
+      css += `\n[data-theme="${sanitizeCSSValue(name)}"] {\n`;
+      for (const [key, value] of entries) {
+        if (!validateTokenKey(key)) continue;
+        css += `  ${toCSSVar(key)}: ${sanitizeCSSValue(value)};\n`;
+      }
+      css += `}\n`;
+    }
+  }
 
   return css;
 }
@@ -2308,15 +2386,18 @@ module.exports = ${JSON.stringify(preset, null, 2)};
 function main() {
   console.log("[RDS] Reading token sources…\n");
 
-  const { tokens: baseTokens, dark: darkTokens, stats } = loadAndMergeTokens();
+  const { tokens: baseTokens, dark: darkTokens, themes, stats } = loadAndMergeTokens();
 
-  if (stats.localLoaded || stats.localDarkLoaded) {
-    console.log("  Local token files:");
+  if (stats.localLoaded || stats.localDarkLoaded || stats.themes.length > 0) {
+    console.log("  Extensions:");
     if (stats.localLoaded) {
       console.log(`  ✓ tokens/local.json loaded (${stats.overrides} override(s), ${stats.extensions} extension(s))`);
     }
     if (stats.localDarkLoaded) {
       console.log(`  ✓ tokens/local-dark.json loaded`);
+    }
+    if (stats.themes.length > 0) {
+      console.log(`  ✓ ${stats.themes.length} named theme(s): ${stats.themes.join(", ")}`);
     }
     console.log("");
   }
@@ -2328,7 +2409,7 @@ function main() {
 
   // ── Core outputs ──────────────────────────────────────────────────────
   console.log("  Core outputs:");
-  emit(path.join(CSS_DIR, "global.css"), buildGlobalCSS(baseTokens, darkTokens));
+  emit(path.join(CSS_DIR, "global.css"), buildGlobalCSS(baseTokens, darkTokens, themes));
   emit(path.join(CSS_DIR, "utilities.css"), buildUtilitiesCSS(baseTokens));
   emit(path.join(CSS_DIR, "scoped-overrides.css"), buildScopedOverridesCSS(baseTokens));
 

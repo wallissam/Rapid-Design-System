@@ -1,0 +1,10 @@
+{
+  "_comment": "Sample branded theme: Contoso. Set data-theme='contoso' to activate.",
+  "color": {
+    "brand": {
+      "primary": "#7c3aed",
+      "secondary": "#6d28d9",
+      "tertiary": "#5b21b6"
+    }
+  }
+}
