@@ -3,10 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self' 'unsafe-inline'; script-src 'unsafe-inline'; img-src 'self' data:;">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; script-src 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data:; connect-src 'none'; font-src 'self';">
 <title>Rapid Design System — Live Demo</title>
 <link rel="stylesheet" href="../packages/css/global.css">
 <link rel="stylesheet" href="../packages/css/utilities.css">
+<link rel="stylesheet" href="../packages/adapters/sweetalert2.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
 <style>
 /* ── Reset & Base ──────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -596,6 +600,9 @@ body { display: flex; min-height: 100vh; }
   }
   .main { padding: var(--rapid-spacing-lg) var(--rapid-spacing-md); }
   .showcase-grid { grid-template-columns: 1fr; }
+  .showcase-section [style*="grid-template-columns: 1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
 }
 </style>
 </head>
@@ -624,8 +631,8 @@ body { display: flex; min-height: 100vh; }
 <main class="main">
   <h1 class="page-title">Rapid Design System</h1>
   <p class="page-subtitle">
-    Adjust the tokens on the left and watch every component below update in real time.
-    Toggle dark mode to see the full theme in action.
+    Adjust the tokens on the left and watch everything update in real time &mdash;
+    native components, Chart.js charts, and SweetAlert2 modals all governed by the same CSS variables.
   </p>
 
   <div class="showcase-grid">
@@ -635,6 +642,46 @@ body { display: flex; min-height: 100vh; }
       <div class="section-title">Color Palette</div>
       <div class="swatch-grid" id="swatchGrid"></div>
     </div>
+
+    <!-- ═══ LIVE INTEGRATIONS ═══ -->
+
+    <!-- Chart.js (JS Bridge Pattern) -->
+    <div class="showcase-section" style="grid-column: 1 / -1;">
+      <div class="section-title" style="display:flex;justify-content:space-between;align-items:center;">
+        <span>Chart.js <span style="font-weight:var(--rapid-font-weight-regular);color:var(--rapid-color-text-secondary);font-size:var(--rapid-font-size-sm);">— JS Bridge Adapter</span></span>
+        <span style="font-size:var(--rapid-font-size-xs);font-family:var(--rapid-font-family-mono);color:var(--rapid-color-text-secondary);background:var(--rapid-color-surface-overlay);padding:2px 8px;border-radius:var(--rapid-radius-sm);">adapters/chartjs.ts</span>
+      </div>
+      <p style="font-size:var(--rapid-font-size-sm);color:var(--rapid-color-text-secondary);margin-bottom:var(--rapid-spacing-md);line-height:1.5;">
+        Canvas-based library &mdash; can't use CSS variables directly.
+        The JS bridge reads computed <code>--rapid-*</code> values and patches Chart.js defaults.
+        Change any colour above and the chart re-renders instantly.
+      </p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--rapid-spacing-md);">
+        <div style="position:relative;height:260px;"><canvas id="chartBar"></canvas></div>
+        <div style="position:relative;height:260px;"><canvas id="chartDoughnut"></canvas></div>
+      </div>
+    </div>
+
+    <!-- SweetAlert2 (CSS Variable Override Pattern) -->
+    <div class="showcase-section" style="grid-column: 1 / -1;">
+      <div class="section-title" style="display:flex;justify-content:space-between;align-items:center;">
+        <span>SweetAlert2 <span style="font-weight:var(--rapid-font-weight-regular);color:var(--rapid-color-text-secondary);font-size:var(--rapid-font-size-sm);">— CSS Override Adapter</span></span>
+        <span style="font-size:var(--rapid-font-size-xs);font-family:var(--rapid-font-family-mono);color:var(--rapid-color-text-secondary);background:var(--rapid-color-surface-overlay);padding:2px 8px;border-radius:var(--rapid-radius-sm);">adapters/sweetalert2.css</span>
+      </div>
+      <p style="font-size:var(--rapid-font-size-sm);color:var(--rapid-color-text-secondary);margin-bottom:var(--rapid-spacing-md);line-height:1.5;">
+        DOM-based library &mdash; themed purely via CSS variable overrides.
+        Our adapter maps <code>--swal2-*</code> to <code>--rapid-*</code>.
+        Zero JavaScript theming &mdash; the modal inherits the active Rapid theme automatically.
+      </p>
+      <div class="button-row">
+        <button class="btn btn-primary" id="swal-success">Success Modal</button>
+        <button class="btn btn-outline" id="swal-confirm">Confirmation</button>
+        <button class="btn btn-danger" id="swal-error">Error Modal</button>
+        <button class="btn btn-ghost" id="swal-toast">Toast</button>
+      </div>
+    </div>
+
+    <!-- ═══ COMPONENT SHOWCASE ═══ -->
 
     <!-- Buttons -->
     <div class="showcase-section">
@@ -916,6 +963,7 @@ body { display: flex; min-height: 100vh; }
           textInput.value = v;
           root.style.setProperty(prop, v);
           userOverrides[prop] = v;
+          if (typeof Chart !== "undefined") requestAnimationFrame(renderCharts);
         });
         textInput.addEventListener("input", (e) => {
           const v = e.target.value;
@@ -923,6 +971,7 @@ body { display: flex; min-height: 100vh; }
             colorInput.value = v;
             root.style.setProperty(prop, v);
             userOverrides[prop] = v;
+            if (typeof Chart !== "undefined") requestAnimationFrame(renderCharts);
           }
         });
         section.appendChild(row);
@@ -940,6 +989,7 @@ body { display: flex; min-height: 100vh; }
     else root.removeAttribute("data-theme");
     applyAllDefaults();
     buildEditor();
+    if (typeof Chart !== "undefined") requestAnimationFrame(renderCharts);
   });
 
   // Reset
@@ -948,6 +998,7 @@ body { display: flex; min-height: 100vh; }
     for (const prop of Object.keys(lightTokens)) root.style.removeProperty(prop);
     applyAllDefaults();
     buildEditor();
+    if (typeof Chart !== "undefined") requestAnimationFrame(renderCharts);
   });
 
   // Export
@@ -1040,9 +1091,135 @@ body { display: flex; min-height: 100vh; }
     });
   });
 
-  // Initial render
+  // ── Chart.js Integration (JS Bridge Pattern) ──────────────────────
+  function rapidToken(name) {
+    return getComputedStyle(root).getPropertyValue(`--rapid-${name}`).trim();
+  }
+
+  function rapidPalette() {
+    return [
+      rapidToken("color-brand-primary"),
+      rapidToken("color-status-success"),
+      rapidToken("color-status-warning"),
+      rapidToken("color-status-danger"),
+      rapidToken("color-brand-secondary"),
+      rapidToken("color-brand-tertiary"),
+    ];
+  }
+
+  let barChart = null;
+  let doughnutChart = null;
+
+  function renderCharts() {
+    const textColor = rapidToken("color-text-primary");
+    const textSecondary = rapidToken("color-text-secondary");
+    const gridColor = rapidToken("color-border-default");
+    const surfaceBase = rapidToken("color-surface-base");
+    const surfaceRaised = rapidToken("color-surface-raised");
+    const fontFamily = rapidToken("font-family-base");
+    const colors = rapidPalette();
+
+    const commonFont = { family: fontFamily, size: 12 };
+    const commonPlugins = {
+      legend: { labels: { color: textColor, font: commonFont, padding: 16, usePointStyle: true, pointStyle: "circle" } },
+      tooltip: {
+        backgroundColor: surfaceRaised,
+        titleColor: textColor,
+        bodyColor: textSecondary,
+        borderColor: gridColor,
+        borderWidth: 1,
+        cornerRadius: 6,
+        padding: 10,
+        titleFont: { ...commonFont, weight: "600" },
+        bodyFont: commonFont,
+      },
+    };
+
+    if (barChart) barChart.destroy();
+    if (doughnutChart) doughnutChart.destroy();
+
+    barChart = new Chart(document.getElementById("chartBar"), {
+      type: "bar",
+      data: {
+        labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+        datasets: [
+          { label: "Revenue", data: [42, 58, 35, 71, 63, 89], backgroundColor: colors[0], borderRadius: 4 },
+          { label: "Expenses", data: [28, 38, 22, 45, 37, 52], backgroundColor: colors[4], borderRadius: 4 },
+        ],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: commonPlugins,
+        scales: {
+          x: { ticks: { color: textSecondary, font: commonFont }, grid: { display: false }, border: { color: gridColor } },
+          y: { ticks: { color: textSecondary, font: commonFont }, grid: { color: gridColor }, border: { display: false } },
+        },
+      },
+    });
+
+    doughnutChart = new Chart(document.getElementById("chartDoughnut"), {
+      type: "doughnut",
+      data: {
+        labels: ["Engineering", "Design", "Product", "Marketing"],
+        datasets: [{ data: [40, 25, 20, 15], backgroundColor: [colors[0], colors[1], colors[2], colors[4]], borderColor: surfaceBase, borderWidth: 3 }],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        cutout: "65%",
+        plugins: commonPlugins,
+      },
+    });
+  }
+
+  // ── SweetAlert2 Integration (CSS Override Pattern) ────────────────
+
+  if (typeof Swal !== "undefined") {
+    document.getElementById("swal-success").addEventListener("click", () => {
+      Swal.fire({
+        icon: "success",
+        title: "Deployment Complete",
+        text: "Build v2.4.1 deployed to production successfully.",
+        confirmButtonText: "Done",
+      });
+    });
+
+    document.getElementById("swal-confirm").addEventListener("click", () => {
+      Swal.fire({
+        title: "Delete this record?",
+        text: "This action cannot be undone.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Delete",
+        cancelButtonText: "Cancel",
+      });
+    });
+
+    document.getElementById("swal-error").addEventListener("click", () => {
+      Swal.fire({
+        icon: "error",
+        title: "Connection Failed",
+        text: "Unable to reach the API server. Check your network and try again.",
+        confirmButtonText: "Retry",
+      });
+    });
+
+    document.getElementById("swal-toast").addEventListener("click", () => {
+      Swal.fire({
+        toast: true,
+        position: "top-end",
+        icon: "success",
+        title: "Settings saved",
+        showConfirmButton: false,
+        timer: 2500,
+        timerProgressBar: true,
+      });
+    });
+  }
+
+  // ── Initial render ────────────────────────────────────────────────
   buildEditor();
   applyAllDefaults();
+  if (typeof Chart !== "undefined") renderCharts();
 })();
 </script>
 </body>
