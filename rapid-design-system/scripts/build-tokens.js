@@ -2380,6 +2380,74 @@ module.exports = ${JSON.stringify(preset, null, 2)};
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+//  EDITOR SUPPORT
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * Generate a VS Code CSS Custom Data file.
+ * When referenced in .vscode/settings.json, this gives developers
+ * autocomplete for all --rapid-* variables with descriptions
+ * and light/dark values — zero extension install required.
+ */
+function buildCSSCustomData(baseTokens, darkTokens) {
+  const baseEntries = flatten(baseTokens);
+  const darkEntries = flatten(darkTokens);
+  const darkMap = new Map(darkEntries);
+
+  const properties = [];
+
+  for (const [key, value] of baseEntries) {
+    const cssVar = toCSSVar(key);
+    const darkValue = darkMap.get(key);
+
+    let desc = `Token: ${key.replace(/-/g, ".")}`;
+    desc += `\n\nLight: ${value}`;
+    if (darkValue) desc += `\nDark: ${darkValue}`;
+
+    const isColor = String(value).startsWith("#") || String(value).startsWith("rgba");
+    const prop = {
+      name: cssVar,
+      description: desc,
+    };
+
+    if (isColor) prop.syntax = "<color>";
+
+    properties.push(prop);
+  }
+
+  return JSON.stringify({ version: 1.1, properties }, null, 2) + "\n";
+}
+
+/**
+ * Ensure .vscode/settings.json references the CSS custom data file.
+ * Creates the file if missing; patches it if it exists but lacks the entry.
+ */
+function ensureSettingsJSON(vscodeDir) {
+  const settingsPath = path.join(vscodeDir, "settings.json");
+  const dataRef = ".vscode/rapid-tokens.css-data.json";
+  let settings = {};
+
+  if (fs.existsSync(settingsPath)) {
+    try {
+      settings = JSON.parse(fs.readFileSync(settingsPath, "utf-8"));
+    } catch {
+      settings = {};
+    }
+  }
+
+  const key = "css.customData";
+  if (!Array.isArray(settings[key])) {
+    settings[key] = [];
+  }
+
+  if (!settings[key].includes(dataRef)) {
+    settings[key].push(dataRef);
+    fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + "\n");
+    console.log("[RDS] ✓ .vscode/settings.json (css.customData registered)");
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 //  MAIN
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -2453,7 +2521,17 @@ function main() {
   console.log("\n  Config Presets:");
   emit(path.join(ADAPTERS_DIR, "tailwind-preset.js"), buildTailwindPreset(baseTokens));
 
-  console.log("\n[RDS] Build complete — 22 artefacts generated.\n");
+  // ── Editor Support ─────────────────────────────────────────────────
+  console.log("\n  Editor Support:");
+  const vscodeDir = path.join(ROOT, ".vscode");
+  ensureDir(vscodeDir);
+  emit(
+    path.join(vscodeDir, "rapid-tokens.css-data.json"),
+    buildCSSCustomData(baseTokens, darkTokens),
+  );
+  ensureSettingsJSON(vscodeDir);
+
+  console.log("\n[RDS] Build complete.\n");
 }
 
 main();

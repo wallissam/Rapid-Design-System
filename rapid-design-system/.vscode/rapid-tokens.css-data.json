@@ -1,0 +1,289 @@
+{
+  "version": 1.1,
+  "properties": [
+    {
+      "name": "--rapid-color-brand-primary",
+      "description": "Token: color.brand.primary\n\nLight: #0f6cbd\nDark: #479ef5",
+      "syntax": "<color>"
+    },
+    {
+      "name": "--rapid-color-brand-secondary",
+      "description": "Token: color.brand.secondary\n\nLight: #115ea3\nDark: #62abf5",
+      "syntax": "<color>"
+    },
+    {
+      "name": "--rapid-color-brand-tertiary",
+      "description": "Token: color.brand.tertiary\n\nLight: #0078d4\nDark: #2886de",
+      "syntax": "<color>"
+    },
+    {
+      "name": "--rapid-color-surface-base",
+      "description": "Token: color.surface.base\n\nLight: #ffffff\nDark: #1b1b1b",
+      "syntax": "<color>"
+    },
+    {
+      "name": "--rapid-color-surface-raised",
+      "description": "Token: color.surface.raised\n\nLight: #fafafa\nDark: #2d2d2d",
+      "syntax": "<color>"
+    },
+    {
+      "name": "--rapid-color-surface-overlay",
+      "description": "Token: color.surface.overlay\n\nLight: #f5f5f5\nDark: #383838",
+      "syntax": "<color>"
+    },
+    {
+      "name": "--rapid-color-surface-disabled",
+      "description": "Token: color.surface.disabled\n\nLight: #f0f0f0\nDark: #2a2a2a",
+      "syntax": "<color>"
+    },
+    {
+      "name": "--rapid-color-text-primary",
+      "description": "Token: color.text.primary\n\nLight: #242424\nDark: #e0e0e0",
+      "syntax": "<color>"
+    },
+    {
+      "name": "--rapid-color-text-secondary",
+      "description": "Token: color.text.secondary\n\nLight: #616161\nDark: #adadad",
+      "syntax": "<color>"
+    },
+    {
+      "name": "--rapid-color-text-disabled",
+      "description": "Token: color.text.disabled\n\nLight: #a0a0a0\nDark: #5c5c5c",
+      "syntax": "<color>"
+    },
+    {
+      "name": "--rapid-color-text-on-brand",
+      "description": "Token: color.text.on.brand\n\nLight: #ffffff\nDark: #ffffff",
+      "syntax": "<color>"
+    },
+    {
+      "name": "--rapid-color-text-link",
+      "description": "Token: color.text.link\n\nLight: #0f6cbd\nDark: #479ef5",
+      "syntax": "<color>"
+    },
+    {
+      "name": "--rapid-color-text-link-hover",
+      "description": "Token: color.text.link.hover\n\nLight: #115ea3\nDark: #62abf5",
+      "syntax": "<color>"
+    },
+    {
+      "name": "--rapid-color-border-default",
+      "description": "Token: color.border.default\n\nLight: #d1d1d1\nDark: #484848",
+      "syntax": "<color>"
+    },
+    {
+      "name": "--rapid-color-border-strong",
+      "description": "Token: color.border.strong\n\nLight: #ababab\nDark: #6a6a6a",
+      "syntax": "<color>"
+    },
+    {
+      "name": "--rapid-color-focus-ring",
+      "description": "Token: color.focus.ring\n\nLight: #0f6cbd\nDark: #479ef5",
+      "syntax": "<color>"
+    },
+    {
+      "name": "--rapid-color-status-info",
+      "description": "Token: color.status.info\n\nLight: #0078d4\nDark: #479ef5",
+      "syntax": "<color>"
+    },
+    {
+      "name": "--rapid-color-status-success",
+      "description": "Token: color.status.success\n\nLight: #0e7a0d\nDark: #54b054",
+      "syntax": "<color>"
+    },
+    {
+      "name": "--rapid-color-status-warning",
+      "description": "Token: color.status.warning\n\nLight: #f7630c\nDark: #f98845",
+      "syntax": "<color>"
+    },
+    {
+      "name": "--rapid-color-status-danger",
+      "description": "Token: color.status.danger\n\nLight: #b10e1c\nDark: #e34e5e",
+      "syntax": "<color>"
+    },
+    {
+      "name": "--rapid-spacing-xs",
+      "description": "Token: spacing.xs\n\nLight: 4px"
+    },
+    {
+      "name": "--rapid-spacing-sm",
+      "description": "Token: spacing.sm\n\nLight: 8px"
+    },
+    {
+      "name": "--rapid-spacing-md",
+      "description": "Token: spacing.md\n\nLight: 16px"
+    },
+    {
+      "name": "--rapid-spacing-lg",
+      "description": "Token: spacing.lg\n\nLight: 24px"
+    },
+    {
+      "name": "--rapid-spacing-xl",
+      "description": "Token: spacing.xl\n\nLight: 32px"
+    },
+    {
+      "name": "--rapid-spacing-2xl",
+      "description": "Token: spacing.2xl\n\nLight: 48px"
+    },
+    {
+      "name": "--rapid-font-family-base",
+      "description": "Token: font.family.base\n\nLight: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', sans-serif"
+    },
+    {
+      "name": "--rapid-font-family-mono",
+      "description": "Token: font.family.mono\n\nLight: 'Cascadia Code', 'Fira Code', 'Consolas', monospace"
+    },
+    {
+      "name": "--rapid-font-size-xs",
+      "description": "Token: font.size.xs\n\nLight: 10px"
+    },
+    {
+      "name": "--rapid-font-size-sm",
+      "description": "Token: font.size.sm\n\nLight: 12px"
+    },
+    {
+      "name": "--rapid-font-size-md",
+      "description": "Token: font.size.md\n\nLight: 14px"
+    },
+    {
+      "name": "--rapid-font-size-lg",
+      "description": "Token: font.size.lg\n\nLight: 18px"
+    },
+    {
+      "name": "--rapid-font-size-xl",
+      "description": "Token: font.size.xl\n\nLight: 24px"
+    },
+    {
+      "name": "--rapid-font-size-2xl",
+      "description": "Token: font.size.2xl\n\nLight: 32px"
+    },
+    {
+      "name": "--rapid-font-weight-regular",
+      "description": "Token: font.weight.regular\n\nLight: 400"
+    },
+    {
+      "name": "--rapid-font-weight-semibold",
+      "description": "Token: font.weight.semibold\n\nLight: 600"
+    },
+    {
+      "name": "--rapid-font-weight-bold",
+      "description": "Token: font.weight.bold\n\nLight: 700"
+    },
+    {
+      "name": "--rapid-font-line-height-tight",
+      "description": "Token: font.line.height.tight\n\nLight: 1.2"
+    },
+    {
+      "name": "--rapid-font-line-height-normal",
+      "description": "Token: font.line.height.normal\n\nLight: 1.5"
+    },
+    {
+      "name": "--rapid-font-line-height-relaxed",
+      "description": "Token: font.line.height.relaxed\n\nLight: 1.75"
+    },
+    {
+      "name": "--rapid-font-letter-spacing-tight",
+      "description": "Token: font.letter.spacing.tight\n\nLight: -0.02em"
+    },
+    {
+      "name": "--rapid-font-letter-spacing-normal",
+      "description": "Token: font.letter.spacing.normal\n\nLight: 0em"
+    },
+    {
+      "name": "--rapid-font-letter-spacing-wide",
+      "description": "Token: font.letter.spacing.wide\n\nLight: 0.05em"
+    },
+    {
+      "name": "--rapid-radius-sm",
+      "description": "Token: radius.sm\n\nLight: 2px"
+    },
+    {
+      "name": "--rapid-radius-md",
+      "description": "Token: radius.md\n\nLight: 4px"
+    },
+    {
+      "name": "--rapid-radius-lg",
+      "description": "Token: radius.lg\n\nLight: 8px"
+    },
+    {
+      "name": "--rapid-radius-xl",
+      "description": "Token: radius.xl\n\nLight: 12px"
+    },
+    {
+      "name": "--rapid-radius-round",
+      "description": "Token: radius.round\n\nLight: 9999px"
+    },
+    {
+      "name": "--rapid-border-width-thin",
+      "description": "Token: border.width.thin\n\nLight: 1px"
+    },
+    {
+      "name": "--rapid-border-width-thick",
+      "description": "Token: border.width.thick\n\nLight: 2px"
+    },
+    {
+      "name": "--rapid-shadow-sm",
+      "description": "Token: shadow.sm\n\nLight: 0 1px 2px rgba(0, 0, 0, 0.12)\nDark: 0 1px 2px rgba(0, 0, 0, 0.40)"
+    },
+    {
+      "name": "--rapid-shadow-md",
+      "description": "Token: shadow.md\n\nLight: 0 2px 4px rgba(0, 0, 0, 0.14)\nDark: 0 2px 4px rgba(0, 0, 0, 0.44)"
+    },
+    {
+      "name": "--rapid-shadow-lg",
+      "description": "Token: shadow.lg\n\nLight: 0 8px 16px rgba(0, 0, 0, 0.14)\nDark: 0 8px 16px rgba(0, 0, 0, 0.44)"
+    },
+    {
+      "name": "--rapid-focus-width",
+      "description": "Token: focus.width\n\nLight: 2px"
+    },
+    {
+      "name": "--rapid-focus-offset",
+      "description": "Token: focus.offset\n\nLight: 2px"
+    },
+    {
+      "name": "--rapid-opacity-disabled",
+      "description": "Token: opacity.disabled\n\nLight: 0.4"
+    },
+    {
+      "name": "--rapid-opacity-hover",
+      "description": "Token: opacity.hover\n\nLight: 0.9"
+    },
+    {
+      "name": "--rapid-opacity-subtle",
+      "description": "Token: opacity.subtle\n\nLight: 0.7"
+    },
+    {
+      "name": "--rapid-duration-fast",
+      "description": "Token: duration.fast\n\nLight: 100ms"
+    },
+    {
+      "name": "--rapid-duration-normal",
+      "description": "Token: duration.normal\n\nLight: 200ms"
+    },
+    {
+      "name": "--rapid-duration-slow",
+      "description": "Token: duration.slow\n\nLight: 400ms"
+    },
+    {
+      "name": "--rapid-z-dropdown",
+      "description": "Token: z.dropdown\n\nLight: 1000"
+    },
+    {
+      "name": "--rapid-z-sticky",
+      "description": "Token: z.sticky\n\nLight: 1100"
+    },
+    {
+      "name": "--rapid-z-overlay",
+      "description": "Token: z.overlay\n\nLight: 1300"
+    },
+    {
+      "name": "--rapid-z-modal",
+      "description": "Token: z.modal\n\nLight: 1400"
+    },
+    {
+      "name": "--rapid-z-toast",
+      "description": "Token: z.toast\n\nLight: 1500"
+    }
+  ]
+}
