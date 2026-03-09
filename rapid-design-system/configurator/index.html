@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RDS Theme Configurator</title>
+<link rel="stylesheet" href="../packages/css/global.css">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-family: var(--rapid-font-family-base); font-size: 14px; color: var(--rapid-color-text-primary); background: var(--rapid-color-surface-base); line-height: 1.5; transition: background .25s, color .25s; }
+body { display: flex; min-height: 100vh; }
+
+/* ── Left: editor ── */
+.editor { width: 400px; min-width: 400px; background: var(--rapid-color-surface-raised); border-right: 1px solid var(--rapid-color-border-default); display: flex; flex-direction: column; overflow: hidden; transition: background .25s, border-color .25s; }
+.editor-header { padding: 16px 20px; border-bottom: 1px solid var(--rapid-color-border-default); display: flex; align-items: center; justify-content: space-between; }
+.editor-logo { font-size: 18px; font-weight: 700; letter-spacing: .15em; color: var(--rapid-color-brand-primary); }
+.editor-sub { font-size: 11px; color: var(--rapid-color-text-secondary); }
+.mode-row { display: flex; align-items: center; gap: 8px; }
+.mode-btn { padding: 4px 12px; font-size: 11px; font-weight: 600; border-radius: 4px; border: 1px solid var(--rapid-color-border-default); background: var(--rapid-color-surface-base); color: var(--rapid-color-text-primary); cursor: pointer; font-family: inherit; }
+.mode-btn.active { background: var(--rapid-color-brand-primary); color: var(--rapid-color-text-on-brand); border-color: var(--rapid-color-brand-primary); }
+
+/* Tabs */
+.tabs { display: flex; border-bottom: 1px solid var(--rapid-color-border-default); background: var(--rapid-color-surface-raised); }
+.tab { flex: 1; padding: 10px 0; text-align: center; font-size: 11px; font-weight: 600; letter-spacing: .03em; color: var(--rapid-color-text-secondary); border: none; background: none; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; font-family: inherit; transition: all .15s; }
+.tab:hover { color: var(--rapid-color-text-primary); }
+.tab.active { color: var(--rapid-color-brand-primary); border-bottom-color: var(--rapid-color-brand-primary); }
+
+/* Panels */
+.panel { display: none; overflow-y: auto; flex: 1; padding: 16px 20px; }
+.panel.active { display: block; }
+.group-title { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--rapid-color-text-secondary); padding: 8px 0 4px; }
+.row { display: flex; align-items: center; gap: 8px; padding: 5px 0; }
+.row-label { flex: 1; font-size: 12px; }
+.row-swatch { width: 24px; height: 24px; border-radius: 4px; border: 1px solid var(--rapid-color-border-default); flex-shrink: 0; }
+.row-input { width: 72px; padding: 3px 6px; font-size: 11px; font-family: 'SF Mono', Consolas, monospace; border: 1px solid var(--rapid-color-border-default); border-radius: 4px; background: var(--rapid-color-surface-base); color: var(--rapid-color-text-primary); }
+.row-input:focus { outline: none; border-color: var(--rapid-color-brand-primary); }
+.row-picker { width: 28px; height: 24px; border: 1px solid var(--rapid-color-border-default); border-radius: 4px; padding: 0; cursor: pointer; background: none; flex-shrink: 0; -webkit-appearance: none; }
+.row-picker::-webkit-color-swatch-wrapper { padding: 0; }
+.row-picker::-webkit-color-swatch { border: none; border-radius: 3px; }
+
+/* Preset bar */
+.preset-bar { padding: 12px 20px; border-bottom: 1px solid var(--rapid-color-border-default); }
+.preset-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--rapid-color-text-secondary); margin-bottom: 6px; }
+.preset-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.preset-chip { padding: 6px 0; text-align: center; font-size: 11px; font-weight: 500; border-radius: 6px; border: 1px solid var(--rapid-color-border-default); background: var(--rapid-color-surface-base); color: var(--rapid-color-text-primary); cursor: pointer; font-family: inherit; transition: all .15s; }
+.preset-chip:hover { border-color: var(--rapid-color-brand-primary); }
+.preset-chip.active { background: var(--rapid-color-brand-primary); color: var(--rapid-color-text-on-brand); border-color: var(--rapid-color-brand-primary); }
+
+/* ── Right: preview + export ── */
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.preview-bar { padding: 12px 20px; border-bottom: 1px solid var(--rapid-color-border-default); display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.preview-bar-title { font-weight: 600; font-size: 13px; }
+.export-btn { padding: 6px 16px; font-size: 12px; font-weight: 600; border-radius: 6px; border: none; cursor: pointer; font-family: inherit; transition: opacity .15s; }
+.export-btn:hover { opacity: .9; }
+.export-btn.primary { background: var(--rapid-color-brand-primary); color: var(--rapid-color-text-on-brand); }
+.export-btn.outline { background: none; border: 1px solid var(--rapid-color-border-default); color: var(--rapid-color-text-primary); }
+
+.preview-area { flex: 1; overflow-y: auto; padding: 24px; }
+
+/* Preview components */
+.preview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; max-width: 860px; }
+.p-card { background: var(--rapid-color-surface-raised); border: 1px solid var(--rapid-color-border-default); border-radius: var(--rapid-radius-lg); padding: 16px; transition: all .25s; }
+.p-card:hover { box-shadow: var(--rapid-shadow-md); }
+.p-title { font-weight: 600; margin-bottom: 8px; font-size: 13px; }
+.p-text { font-size: 12px; color: var(--rapid-color-text-secondary); line-height: 1.5; }
+.p-btn { display: inline-block; padding: 6px 14px; font-size: 12px; font-weight: 600; border-radius: var(--rapid-radius-md); border: none; cursor: pointer; margin-top: 10px; margin-right: 6px; font-family: inherit; }
+.p-btn-primary { background: var(--rapid-color-brand-primary); color: var(--rapid-color-text-on-brand); }
+.p-btn-outline { background: none; border: 1px solid var(--rapid-color-border-strong); color: var(--rapid-color-text-primary); }
+.p-btn-danger { background: var(--rapid-color-status-danger); color: #fff; }
+.p-btn-success { background: var(--rapid-color-status-success); color: #fff; }
+.p-input { width: 100%; padding: 7px 10px; border: 1px solid var(--rapid-color-border-default); border-radius: var(--rapid-radius-md); font-size: 12px; font-family: inherit; background: var(--rapid-color-surface-base); color: var(--rapid-color-text-primary); margin-top: 8px; }
+.p-input:focus { outline: none; border-color: var(--rapid-color-brand-primary); }
+.p-badge { display: inline-block; padding: 2px 8px; font-size: 10px; font-weight: 600; border-radius: 999px; }
+.p-swatches { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 8px; }
+.p-swatch { width: 28px; height: 28px; border-radius: 4px; border: 1px solid rgba(0,0,0,.08); }
+.p-alert { padding: 8px 12px; border-radius: var(--rapid-radius-md); font-size: 12px; border-left: 3px solid; margin-top: 6px; }
+.p-progress { width: 100%; height: 6px; border-radius: 999px; background: var(--rapid-color-surface-overlay); overflow: hidden; margin-top: 8px; }
+.p-progress-fill { height: 100%; border-radius: 999px; }
+
+/* Export modal */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 9999; display: none; align-items: center; justify-content: center; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--rapid-color-surface-base); border-radius: 12px; box-shadow: 0 16px 48px rgba(0,0,0,.2); width: 600px; max-width: 90vw; max-height: 85vh; display: flex; flex-direction: column; overflow: hidden; }
+.modal-header { padding: 16px 20px; border-bottom: 1px solid var(--rapid-color-border-default); display: flex; align-items: center; justify-content: space-between; }
+.modal-title { font-weight: 600; font-size: 15px; }
+.modal-close { width: 28px; height: 28px; border: none; background: var(--rapid-color-surface-overlay); border-radius: 6px; cursor: pointer; font-size: 16px; color: var(--rapid-color-text-secondary); display: flex; align-items: center; justify-content: center; }
+.modal-tabs { display: flex; border-bottom: 1px solid var(--rapid-color-border-default); }
+.modal-tab { flex: 1; padding: 10px 0; text-align: center; font-size: 11px; font-weight: 600; letter-spacing: .03em; color: var(--rapid-color-text-secondary); border: none; background: none; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; font-family: inherit; }
+.modal-tab.active { color: var(--rapid-color-brand-primary); border-bottom-color: var(--rapid-color-brand-primary); }
+.modal-body { flex: 1; overflow-y: auto; padding: 16px 20px; }
+.code-block { width: 100%; min-height: 200px; padding: 12px; font-family: 'SF Mono', Consolas, monospace; font-size: 11px; line-height: 1.5; border: 1px solid var(--rapid-color-border-default); border-radius: 6px; background: var(--rapid-color-surface-raised); color: var(--rapid-color-text-primary); resize: vertical; }
+.copy-btn { margin-top: 10px; padding: 8px 20px; font-size: 12px; font-weight: 600; border-radius: 6px; border: none; background: var(--rapid-color-brand-primary); color: var(--rapid-color-text-on-brand); cursor: pointer; font-family: inherit; }
+.copy-btn:hover { opacity: .9; }
+.copy-hint { font-size: 11px; color: var(--rapid-color-text-secondary); margin-top: 8px; line-height: 1.5; }
+.toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); padding: 8px 20px; background: var(--rapid-color-text-primary); color: var(--rapid-color-surface-base); font-size: 12px; font-weight: 500; border-radius: 8px; opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 99999; }
+.toast.show { opacity: 1; }
+
+@media (max-width: 900px) {
+  body { flex-direction: column; }
+  .editor { width: 100%; min-width: 0; max-height: 50vh; }
+  .preview-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── EDITOR ── -->
+<aside class="editor">
+  <div class="editor-header">
+    <div>
+      <div class="editor-logo">RDS</div>
+      <div class="editor-sub">Theme Configurator</div>
+    </div>
+    <div class="mode-row">
+      <button class="mode-btn active" id="modeLight">Light</button>
+      <button class="mode-btn" id="modeDark">Dark</button>
+    </div>
+  </div>
+
+  <div class="preset-bar">
+    <div class="preset-label">Start from a preset</div>
+    <div class="preset-grid" id="presetGrid"></div>
+  </div>
+
+  <div class="tabs" id="editorTabs"></div>
+  <div id="editorPanels"></div>
+</aside>
+
+<!-- ── MAIN ── -->
+<div class="main">
+  <div class="preview-bar">
+    <span class="preview-bar-title">Live Preview</span>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <a href="../demo/" style="font-size:11px;color:var(--rapid-color-text-link);text-decoration:none;">Live Demo</a>
+      <span style="color:var(--rapid-color-border-default);">&middot;</span>
+      <a href="https://github.com/wallissam/Rapid-Design-System" style="font-size:11px;color:var(--rapid-color-text-link);text-decoration:none;">GitHub</a>
+      <button class="export-btn outline" id="importBtn">Import JSON</button>
+      <button class="export-btn primary" id="exportBtn">Export Theme</button>
+    </div>
+  </div>
+  <div class="preview-area">
+    <div class="preview-grid" id="previewGrid"></div>
+  </div>
+</div>
+
+<!-- ── EXPORT MODAL ── -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Export Theme</span>
+      <button class="modal-close" id="modalClose">&times;</button>
+    </div>
+    <div class="modal-tabs" id="modalTabs"></div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function() {
+  const root = document.documentElement;
+  const HEX = /^#[0-9a-fA-F]{6}$/;
+
+  // ── Token schema ──
+  const schema = {
+    "Colors": {
+      "Brand": [["color.brand.primary","Brand Primary"],["color.brand.secondary","Brand Secondary"],["color.brand.tertiary","Brand Tertiary"]],
+      "Surfaces": [["color.surface.base","Base"],["color.surface.raised","Raised"],["color.surface.overlay","Overlay"],["color.surface.disabled","Disabled"]],
+      "Text": [["color.text.primary","Primary"],["color.text.secondary","Secondary"],["color.text.disabled","Disabled"],["color.text.on-brand","On Brand"],["color.text.link","Link"],["color.text.link-hover","Link Hover"]],
+      "Borders": [["color.border.default","Default"],["color.border.strong","Strong"]],
+      "Focus": [["color.focus.ring","Focus Ring"]],
+      "Status": [["color.status.info","Info"],["color.status.success","Success"],["color.status.warning","Warning"],["color.status.danger","Danger"]]
+    },
+    "Spacing": {
+      "Scale": [["spacing.xs","Extra Small"],["spacing.sm","Small"],["spacing.md","Medium"],["spacing.lg","Large"],["spacing.xl","Extra Large"],["spacing.2xl","2X Large"]]
+    },
+    "Typography": {
+      "Family": [["font.family.base","Base Font Stack"],["font.family.mono","Monospace Font Stack"]],
+      "Size": [["font.size.xs","XS"],["font.size.sm","SM"],["font.size.md","MD"],["font.size.lg","LG"],["font.size.xl","XL"],["font.size.2xl","2XL"]],
+      "Weight": [["font.weight.regular","Regular"],["font.weight.semibold","Semibold"],["font.weight.bold","Bold"]],
+      "Line Height": [["font.line-height.tight","Tight"],["font.line-height.normal","Normal"],["font.line-height.relaxed","Relaxed"]],
+      "Letter Spacing": [["font.letter-spacing.tight","Tight"],["font.letter-spacing.normal","Normal"],["font.letter-spacing.wide","Wide"]]
+    },
+    "Shape": {
+      "Radius": [["radius.sm","Small"],["radius.md","Medium"],["radius.lg","Large"],["radius.xl","Extra Large"],["radius.round","Round"]],
+      "Border Width": [["border.width.thin","Thin"],["border.width.thick","Thick"]],
+      "Shadow": [["shadow.sm","Small"],["shadow.md","Medium"],["shadow.lg","Large"]]
+    },
+    "Motion": {
+      "Duration": [["duration.fast","Fast"],["duration.normal","Normal"],["duration.slow","Slow"]],
+      "Easing": [["easing.default","Default"],["easing.in","Ease In"],["easing.out","Ease Out"],["easing.spring","Spring"]]
+    },
+    "Layout": {
+      "Opacity": [["opacity.disabled","Disabled"],["opacity.hover","Hover"],["opacity.subtle","Subtle"]],
+      "Z-Index": [["z.dropdown","Dropdown"],["z.sticky","Sticky"],["z.overlay","Overlay"],["z.modal","Modal"],["z.toast","Toast"]],
+      "Focus": [["focus.width","Width"],["focus.offset","Offset"]]
+    }
+  };
+
+  const defaults = {"color.brand.primary":"#0f6cbd","color.brand.secondary":"#115ea3","color.brand.tertiary":"#0078d4","color.surface.base":"#ffffff","color.surface.raised":"#fafafa","color.surface.overlay":"#f5f5f5","color.surface.disabled":"#f0f0f0","color.text.primary":"#242424","color.text.secondary":"#616161","color.text.disabled":"#a0a0a0","color.text.on-brand":"#ffffff","color.text.link":"#0f6cbd","color.text.link-hover":"#115ea3","color.border.default":"#d1d1d1","color.border.strong":"#ababab","color.focus.ring":"#0f6cbd","color.status.info":"#0078d4","color.status.success":"#0e7a0d","color.status.warning":"#f7630c","color.status.danger":"#b10e1c","spacing.xs":"4px","spacing.sm":"8px","spacing.md":"16px","spacing.lg":"24px","spacing.xl":"32px","spacing.2xl":"48px","font.family.base":"'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', sans-serif","font.family.mono":"'Cascadia Code', 'Fira Code', 'Consolas', monospace","font.size.xs":"10px","font.size.sm":"12px","font.size.md":"14px","font.size.lg":"18px","font.size.xl":"24px","font.size.2xl":"32px","font.weight.regular":"400","font.weight.semibold":"600","font.weight.bold":"700","font.line-height.tight":"1.2","font.line-height.normal":"1.5","font.line-height.relaxed":"1.75","font.letter-spacing.tight":"-0.02em","font.letter-spacing.normal":"0em","font.letter-spacing.wide":"0.05em","radius.sm":"2px","radius.md":"4px","radius.lg":"8px","radius.xl":"12px","radius.round":"9999px","border.width.thin":"1px","border.width.thick":"2px","shadow.sm":"0 1px 2px rgba(0, 0, 0, 0.12)","shadow.md":"0 2px 4px rgba(0, 0, 0, 0.14)","shadow.lg":"0 8px 16px rgba(0, 0, 0, 0.14)","focus.width":"2px","focus.offset":"2px","opacity.disabled":"0.4","opacity.hover":"0.9","opacity.subtle":"0.7","duration.fast":"100ms","duration.normal":"200ms","duration.slow":"400ms","easing.default":"cubic-bezier(0.4, 0, 0.2, 1)","easing.in":"cubic-bezier(0.4, 0, 1, 1)","easing.out":"cubic-bezier(0, 0, 0.2, 1)","easing.spring":"cubic-bezier(0.175, 0.885, 0.32, 1.275)","z.dropdown":"1000","z.sticky":"1100","z.overlay":"1300","z.modal":"1400","z.toast":"1500"};
+
+  const darkDefaults = {"color.brand.primary":"#479ef5","color.brand.secondary":"#62abf5","color.brand.tertiary":"#2886de","color.surface.base":"#1b1b1b","color.surface.raised":"#2d2d2d","color.surface.overlay":"#383838","color.surface.disabled":"#2a2a2a","color.text.primary":"#e0e0e0","color.text.secondary":"#adadad","color.text.disabled":"#5c5c5c","color.text.on-brand":"#ffffff","color.text.link":"#479ef5","color.text.link-hover":"#62abf5","color.border.default":"#484848","color.border.strong":"#6a6a6a","color.focus.ring":"#479ef5","color.status.info":"#479ef5","color.status.success":"#54b054","color.status.warning":"#f98845","color.status.danger":"#e34e5e"};
+
+  const presets = {
+    "Default":{l:{},d:{}},
+    "GitHub":{"l":{"color.brand.primary":"#1f6feb","color.brand.secondary":"#0969da","color.brand.tertiary":"#0550ae","color.surface.base":"#ffffff","color.surface.raised":"#f6f8fa","color.surface.overlay":"#eaeef2","color.text.primary":"#1f2328","color.text.secondary":"#656d76","color.text.link":"#0969da","color.border.default":"#d0d7de","color.focus.ring":"#0969da","color.status.info":"#0969da","color.status.success":"#1a7f37","color.status.warning":"#9a6700","color.status.danger":"#cf222e"},"d":{"color.brand.primary":"#58a6ff","color.brand.secondary":"#79c0ff","color.brand.tertiary":"#388bfd","color.surface.base":"#0d1117","color.surface.raised":"#161b22","color.surface.overlay":"#21262d","color.text.primary":"#e6edf3","color.text.secondary":"#8b949e","color.text.link":"#58a6ff","color.border.default":"#30363d","color.focus.ring":"#58a6ff","color.status.info":"#58a6ff","color.status.success":"#3fb950","color.status.warning":"#d29922","color.status.danger":"#f85149"}},
+    "Tailwind":{"l":{"color.brand.primary":"#3b82f6","color.brand.secondary":"#2563eb","color.brand.tertiary":"#1d4ed8","color.text.primary":"#0f172a","color.text.secondary":"#64748b","color.border.default":"#e2e8f0","color.status.info":"#0ea5e9","color.status.success":"#22c55e","color.status.warning":"#f59e0b","color.status.danger":"#ef4444"},"d":{"color.brand.primary":"#60a5fa","color.brand.secondary":"#93bbfd","color.surface.base":"#0f172a","color.surface.raised":"#1e293b","color.surface.overlay":"#334155","color.text.primary":"#f1f5f9","color.text.secondary":"#94a3b8","color.border.default":"#334155","color.status.info":"#38bdf8","color.status.success":"#4ade80","color.status.warning":"#fbbf24","color.status.danger":"#f87171"}},
+    "Material":{"l":{"color.brand.primary":"#6750a4","color.brand.secondary":"#7f67be","color.brand.tertiary":"#4f378b","color.surface.base":"#fef7ff","color.surface.raised":"#f3edf7","color.surface.overlay":"#e8def8","color.text.primary":"#1d1b20","color.text.secondary":"#49454f","color.border.default":"#cac4d0","color.status.info":"#0b57d0","color.status.success":"#146c2e","color.status.danger":"#b3261e"},"d":{"color.brand.primary":"#d0bcff","color.brand.secondary":"#e8deff","color.brand.tertiary":"#b69df8","color.surface.base":"#141218","color.surface.raised":"#1d1b20","color.surface.overlay":"#2b2930","color.text.primary":"#e6e0e9","color.text.secondary":"#cac4d0","color.text.on-brand":"#381e72","color.border.default":"#49454f"}},
+    "Nord":{"l":{"color.brand.primary":"#5e81ac","color.brand.secondary":"#81a1c1","color.brand.tertiary":"#4c566a","color.surface.base":"#eceff4","color.surface.raised":"#e5e9f0","color.surface.overlay":"#d8dee9","color.text.primary":"#2e3440","color.text.secondary":"#4c566a","color.text.on-brand":"#eceff4","color.border.default":"#d8dee9","color.status.success":"#a3be8c","color.status.warning":"#ebcb8b","color.status.danger":"#bf616a"},"d":{"color.brand.primary":"#88c0d0","color.brand.secondary":"#81a1c1","color.brand.tertiary":"#5e81ac","color.surface.base":"#2e3440","color.surface.raised":"#3b4252","color.surface.overlay":"#434c5e","color.text.primary":"#eceff4","color.text.secondary":"#d8dee9","color.text.on-brand":"#2e3440","color.border.default":"#434c5e"}},
+    "Catppuccin":{"l":{"color.brand.primary":"#1e66f5","color.brand.secondary":"#7287fd","color.brand.tertiary":"#04a5e5","color.surface.base":"#eff1f5","color.surface.raised":"#e6e9ef","color.surface.overlay":"#dce0e8","color.text.primary":"#4c4f69","color.text.secondary":"#6c6f85","color.text.on-brand":"#eff1f5","color.border.default":"#ccd0da","color.status.info":"#04a5e5","color.status.success":"#40a02b","color.status.warning":"#df8e1d","color.status.danger":"#d20f39"},"d":{"color.brand.primary":"#89b4fa","color.brand.secondary":"#b4befe","color.brand.tertiary":"#74c7ec","color.surface.base":"#1e1e2e","color.surface.raised":"#313244","color.surface.overlay":"#45475a","color.text.primary":"#cdd6f4","color.text.secondary":"#a6adc8","color.text.on-brand":"#1e1e2e","color.border.default":"#45475a","color.status.info":"#74c7ec","color.status.success":"#a6e3a1","color.status.warning":"#f9e2af","color.status.danger":"#f38ba8"}},
+    "Solarized":{"l":{"color.brand.primary":"#268bd2","color.brand.secondary":"#2aa198","color.brand.tertiary":"#6c71c4","color.surface.base":"#fdf6e3","color.surface.raised":"#eee8d5","color.surface.overlay":"#e4ddc8","color.text.primary":"#073642","color.text.secondary":"#586e75","color.text.on-brand":"#fdf6e3","color.border.default":"#d6cdb7","color.status.success":"#859900","color.status.warning":"#b58900","color.status.danger":"#dc322f"},"d":{"color.brand.primary":"#268bd2","color.brand.secondary":"#2aa198","color.surface.base":"#002b36","color.surface.raised":"#073642","color.surface.overlay":"#124a56","color.text.primary":"#eee8d5","color.text.secondary":"#93a1a1","color.text.on-brand":"#fdf6e3","color.border.default":"#124a56"}},
+    "Radix":{"l":{"color.brand.primary":"#3e63dd","color.brand.secondary":"#5b7bd7","color.brand.tertiary":"#2f4eb2","color.text.primary":"#11181c","color.text.secondary":"#687076","color.border.default":"#dfe3e6","color.status.info":"#0091ff","color.status.success":"#30a46c","color.status.warning":"#ffc53d","color.status.danger":"#e5484d"},"d":{"color.brand.primary":"#849dff","color.brand.secondary":"#a5b4fc","color.surface.base":"#111113","color.surface.raised":"#19191b","color.surface.overlay":"#222225","color.text.primary":"#eeeef0","color.text.secondary":"#9ba1a6","color.border.default":"#2b2b2f","color.status.info":"#52a9ff","color.status.success":"#4cc38a","color.status.danger":"#ff6369"}},
+    "One Dark":{"l":{"color.brand.primary":"#4078f2","color.brand.secondary":"#526fff","color.brand.tertiary":"#a626a4","color.surface.base":"#fafafa","color.surface.raised":"#f0f0f0","color.surface.overlay":"#e5e5e6","color.text.primary":"#383a42","color.text.secondary":"#696c77","color.border.default":"#d3d3d5","color.status.success":"#50a14f","color.status.warning":"#c18401","color.status.danger":"#e45649"},"d":{"color.brand.primary":"#61afef","color.brand.secondary":"#c678dd","color.brand.tertiary":"#56b6c2","color.surface.base":"#282c34","color.surface.raised":"#2c313c","color.surface.overlay":"#3e4451","color.text.primary":"#abb2bf","color.text.secondary":"#7f848e","color.text.on-brand":"#282c34","color.border.default":"#3e4451","color.status.success":"#98c379","color.status.warning":"#d19a66","color.status.danger":"#e06c75"}}
+  };
+
+  let isDark = false;
+  let activePreset = "Default";
+  let lightValues = { ...defaults };
+  let darkValues = { ...defaults, ...darkDefaults };
+
+  function cssVar(dotPath) { return "--rapid-" + dotPath.replace(/\./g, "-"); }
+  function isColor(v) { return HEX.test(v) || (v && v.startsWith("#")); }
+
+  function applyToDOM() {
+    const vals = isDark ? darkValues : lightValues;
+    for (const [key, val] of Object.entries(vals)) {
+      root.style.setProperty(cssVar(key), val);
+    }
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    setTimeout(() => t.classList.remove("show"), 1500);
+  }
+
+  // ── Presets ──
+  function renderPresets() {
+    const grid = document.getElementById("presetGrid");
+    grid.textContent = "";
+    for (const name of Object.keys(presets)) {
+      const chip = document.createElement("button");
+      chip.className = name === activePreset ? "preset-chip active" : "preset-chip";
+      chip.textContent = name;
+      chip.addEventListener("click", () => {
+        activePreset = name;
+        const p = presets[name];
+        lightValues = { ...defaults, ...p.l };
+        darkValues = { ...defaults, ...darkDefaults, ...p.d };
+        applyToDOM();
+        renderPresets();
+        renderEditorPanels();
+      });
+      grid.appendChild(chip);
+    }
+  }
+
+  // ── Editor ──
+  function renderEditorTabs() {
+    const tabBar = document.getElementById("editorTabs");
+    const panels = document.getElementById("editorPanels");
+    tabBar.textContent = "";
+    const categories = Object.keys(schema);
+    categories.forEach((cat, i) => {
+      const btn = document.createElement("button");
+      btn.className = i === 0 ? "tab active" : "tab";
+      btn.textContent = cat;
+      btn.addEventListener("click", () => {
+        tabBar.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+        btn.classList.add("active");
+        panels.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+        document.getElementById("panel-" + i).classList.add("active");
+      });
+      tabBar.appendChild(btn);
+    });
+  }
+
+  function renderEditorPanels() {
+    const panels = document.getElementById("editorPanels");
+    const activeIdx = Array.from(panels.querySelectorAll(".panel")).findIndex(p => p.classList.contains("active"));
+    panels.textContent = "";
+    const vals = isDark ? darkValues : lightValues;
+
+    Object.entries(schema).forEach(([cat, groups], catIdx) => {
+      const panel = document.createElement("div");
+      panel.className = catIdx === (activeIdx >= 0 ? activeIdx : 0) ? "panel active" : "panel";
+      panel.id = "panel-" + catIdx;
+
+      for (const [groupName, tokens] of Object.entries(groups)) {
+        const title = document.createElement("div");
+        title.className = "group-title";
+        title.textContent = groupName;
+        panel.appendChild(title);
+
+        for (const [dotPath, label] of tokens) {
+          const val = vals[dotPath] || defaults[dotPath];
+          const col = isColor(val);
+          const row = document.createElement("div");
+          row.className = "row";
+
+          if (col) {
+            const swatch = document.createElement("div");
+            swatch.className = "row-swatch";
+            swatch.style.background = val;
+            row.appendChild(swatch);
+          }
+
+          const lbl = document.createElement("span");
+          lbl.className = "row-label";
+          lbl.textContent = label;
+          row.appendChild(lbl);
+
+          if (col) {
+            const hex = document.createElement("input");
+            hex.className = "row-input";
+            hex.type = "text";
+            hex.value = val;
+            hex.spellcheck = false;
+
+            const picker = document.createElement("input");
+            picker.className = "row-picker";
+            picker.type = "color";
+            picker.value = HEX.test(val) ? val : "#000000";
+
+            const sync = (v) => {
+              if (isDark) darkValues[dotPath] = v;
+              else lightValues[dotPath] = v;
+              root.style.setProperty(cssVar(dotPath), v);
+              const sw = row.querySelector(".row-swatch");
+              if (sw) sw.style.background = v;
+            };
+
+            picker.addEventListener("input", e => { hex.value = e.target.value; sync(e.target.value); });
+            hex.addEventListener("change", e => { const v = e.target.value.trim(); if (HEX.test(v)) { picker.value = v; sync(v); } });
+            row.appendChild(hex);
+            row.appendChild(picker);
+          } else {
+            const input = document.createElement("input");
+            input.className = "row-input";
+            input.type = "text";
+            input.value = val;
+            input.addEventListener("change", e => {
+              const v = e.target.value.trim();
+              if (isDark) darkValues[dotPath] = v;
+              else lightValues[dotPath] = v;
+              root.style.setProperty(cssVar(dotPath), v);
+            });
+            row.appendChild(input);
+          }
+
+          panel.appendChild(row);
+        }
+      }
+      panels.appendChild(panel);
+    });
+  }
+
+  // ── Preview ──
+  function renderPreview() {
+    const grid = document.getElementById("previewGrid");
+    grid.replaceChildren();
+    const cards = [
+      () => { const c = mk("div","p-card"); c.style.gridColumn = "1 / -1"; const t = mk("div","p-title"); t.textContent = "Colour Palette"; const sw = mk("div","p-swatches"); for (const k of ["brand.primary","brand.secondary","brand.tertiary","surface.base","surface.raised","surface.overlay","text.primary","text.secondary","border.default","status.info","status.success","status.warning","status.danger"]) { const s = mk("div","p-swatch"); s.style.background = `var(--rapid-color-${k.replace(/\./g,"-")})`; sw.appendChild(s); } c.appendChild(t); c.appendChild(sw); return c; },
+      () => { const c = mk("div","p-card"); const t = mk("div","p-title"); t.textContent = "Buttons"; const b1 = mk("button","p-btn p-btn-primary"); b1.textContent = "Primary"; const b2 = mk("button","p-btn p-btn-outline"); b2.textContent = "Outline"; const b3 = mk("button","p-btn p-btn-success"); b3.textContent = "Success"; const b4 = mk("button","p-btn p-btn-danger"); b4.textContent = "Danger"; c.appendChild(t); c.appendChild(b1); c.appendChild(b2); c.appendChild(b3); c.appendChild(b4); return c; },
+      () => { const c = mk("div","p-card"); const t = mk("div","p-title"); t.textContent = "Form"; const i = mk("input","p-input"); i.type = "text"; i.placeholder = "Type here..."; const p = mk("div","p-text"); p.textContent = "Secondary helper text for the input above."; p.style.marginTop = "6px"; c.appendChild(t); c.appendChild(i); c.appendChild(p); return c; },
+      () => { const c = mk("div","p-card"); const t = mk("div","p-title"); t.textContent = "Status"; const a1 = mk("div","p-alert"); a1.style.borderColor = "var(--rapid-color-status-info)"; a1.style.color = "var(--rapid-color-status-info)"; a1.style.background = "color-mix(in srgb, var(--rapid-color-status-info) 8%, var(--rapid-color-surface-base))"; a1.textContent = "Informational message"; const a2 = mk("div","p-alert"); a2.style.borderColor = "var(--rapid-color-status-success)"; a2.style.color = "var(--rapid-color-status-success)"; a2.style.background = "color-mix(in srgb, var(--rapid-color-status-success) 8%, var(--rapid-color-surface-base))"; a2.textContent = "Operation completed"; const a3 = mk("div","p-alert"); a3.style.borderColor = "var(--rapid-color-status-danger)"; a3.style.color = "var(--rapid-color-status-danger)"; a3.style.background = "color-mix(in srgb, var(--rapid-color-status-danger) 8%, var(--rapid-color-surface-base))"; a3.textContent = "Something went wrong"; c.appendChild(t); c.appendChild(a1); c.appendChild(a2); c.appendChild(a3); return c; },
+      () => { const c = mk("div","p-card"); const t = mk("div","p-title"); t.textContent = "Card Example"; const p = mk("div","p-text"); p.textContent = "This card demonstrates surface, border, text, and shadow tokens working together. Hover to see the shadow."; const badges = mk("div",""); badges.style.cssText = "margin-top:10px;display:flex;gap:4px;"; for (const [label,color] of [["Active","--rapid-color-status-success"],["Pending","--rapid-color-status-warning"],["Error","--rapid-color-status-danger"],["Info","--rapid-color-status-info"]]) { const b = mk("span","p-badge"); b.textContent = label; b.style.background = `var(${color})`; b.style.color = "#fff"; badges.appendChild(b); } c.appendChild(t); c.appendChild(p); c.appendChild(badges); return c; },
+      () => { const c = mk("div","p-card"); const t = mk("div","p-title"); t.textContent = "Progress"; const items = [["Build","75","--rapid-color-brand-primary"],["Tests","100","--rapid-color-status-success"],["Coverage","42","--rapid-color-status-warning"]]; for (const [label,pct,color] of items) { const row = mk("div",""); row.style.cssText = "display:flex;justify-content:space-between;font-size:11px;margin-top:8px;"; const l = mk("span",""); l.textContent = label; const v = mk("span",""); v.textContent = pct + "%"; v.style.color = "var(--rapid-color-text-secondary)"; row.appendChild(l); row.appendChild(v); c.appendChild(row); const track = mk("div","p-progress"); const fill = mk("div","p-progress-fill"); fill.style.width = pct + "%"; fill.style.background = `var(${color})`; track.appendChild(fill); c.appendChild(track); } c.appendChild(t); return c; },
+    ];
+    for (const fn of cards) grid.appendChild(fn());
+  }
+
+  function mk(tag, cls) { const el = document.createElement(tag); if (cls) el.className = cls; return el; }
+
+  // ── Mode toggle ──
+  document.getElementById("modeLight").addEventListener("click", () => {
+    isDark = false;
+    document.getElementById("modeLight").classList.add("active");
+    document.getElementById("modeDark").classList.remove("active");
+    root.removeAttribute("data-theme");
+    applyToDOM(); renderEditorPanels();
+  });
+  document.getElementById("modeDark").addEventListener("click", () => {
+    isDark = true;
+    document.getElementById("modeDark").classList.add("active");
+    document.getElementById("modeLight").classList.remove("active");
+    root.setAttribute("data-theme", "dark");
+    applyToDOM(); renderEditorPanels();
+  });
+
+  // ── Export ──
+  function buildBaseJSON() {
+    const obj = {};
+    for (const [dot, val] of Object.entries(lightValues)) {
+      const parts = dot.split(".");
+      let c = obj;
+      for (let i = 0; i < parts.length - 1; i++) { if (!c[parts[i]]) c[parts[i]] = {}; c = c[parts[i]]; }
+      c[parts[parts.length - 1]] = val;
+    }
+    return obj;
+  }
+  function buildDarkJSON() {
+    const obj = {};
+    for (const [dot, val] of Object.entries(darkValues)) {
+      if (lightValues[dot] === val) continue;
+      const parts = dot.split(".");
+      let c = obj;
+      for (let i = 0; i < parts.length - 1; i++) { if (!c[parts[i]]) c[parts[i]] = {}; c = c[parts[i]]; }
+      c[parts[parts.length - 1]] = val;
+    }
+    return obj;
+  }
+  function buildCSS() {
+    let css = ":root {\n";
+    for (const [dot, val] of Object.entries(lightValues)) { css += `  ${cssVar(dot)}: ${val};\n`; }
+    css += "}\n\n[data-theme=\"dark\"] {\n";
+    for (const [dot, val] of Object.entries(darkValues)) {
+      if (lightValues[dot] !== val) css += `  ${cssVar(dot)}: ${val};\n`;
+    }
+    css += "}\n";
+    return css;
+  }
+  function buildLocalJSON() {
+    const obj = {};
+    for (const [dot, val] of Object.entries(lightValues)) {
+      if (val !== defaults[dot]) {
+        const parts = dot.split(".");
+        let c = obj;
+        for (let i = 0; i < parts.length - 1; i++) { if (!c[parts[i]]) c[parts[i]] = {}; c = c[parts[i]]; }
+        c[parts[parts.length - 1]] = val;
+      }
+    }
+    return obj;
+  }
+
+  const exportFormats = [
+    { name: "base.json", hint: "Save as tokens/base.json, then run: npm run build", fn: () => JSON.stringify(buildBaseJSON(), null, 2) },
+    { name: "dark.json", hint: "Save as tokens/dark.json (only values that differ from light), then run: npm run build", fn: () => JSON.stringify(buildDarkJSON(), null, 2) },
+    { name: "local.json", hint: "Save as tokens/local.json (only your changes from RDS defaults), then run: npm run build. This is the best option if you want to keep RDS defaults for everything you didn't change.", fn: () => JSON.stringify(buildLocalJSON(), null, 2) },
+    { name: "CSS", hint: "Paste into any stylesheet or <style> tag. Works without the build pipeline — just include this CSS.", fn: buildCSS },
+  ];
+
+  document.getElementById("exportBtn").addEventListener("click", () => {
+    const overlay = document.getElementById("modalOverlay");
+    overlay.classList.add("open");
+
+    const tabBar = document.getElementById("modalTabs");
+    const body = document.getElementById("modalBody");
+    tabBar.textContent = "";
+
+    exportFormats.forEach((fmt, i) => {
+      const tab = document.createElement("button");
+      tab.className = i === 0 ? "modal-tab active" : "modal-tab";
+      tab.textContent = fmt.name;
+      tab.addEventListener("click", () => {
+        tabBar.querySelectorAll(".modal-tab").forEach(t => t.classList.remove("active"));
+        tab.classList.add("active");
+        renderExport(i);
+      });
+      tabBar.appendChild(tab);
+    });
+    renderExport(0);
+
+    function renderExport(idx) {
+      body.textContent = "";
+      const fmt = exportFormats[idx];
+      const code = fmt.fn();
+      const textarea = document.createElement("textarea");
+      textarea.className = "code-block";
+      textarea.value = code;
+      textarea.readOnly = true;
+      const btn = document.createElement("button");
+      btn.className = "copy-btn";
+      btn.textContent = "Copy to Clipboard";
+      btn.addEventListener("click", () => {
+        navigator.clipboard.writeText(code).then(() => showToast("Copied!"));
+      });
+      const hint = document.createElement("div");
+      hint.className = "copy-hint";
+      hint.textContent = fmt.hint;
+      body.appendChild(textarea);
+      body.appendChild(btn);
+      body.appendChild(hint);
+    }
+  });
+
+  document.getElementById("modalClose").addEventListener("click", () => {
+    document.getElementById("modalOverlay").classList.remove("open");
+  });
+  document.getElementById("modalOverlay").addEventListener("click", (e) => {
+    if (e.target === e.currentTarget) e.currentTarget.classList.remove("open");
+  });
+
+  // ── Universal format normalizer ──
+  function normalizeImport(data) {
+    const result = {};
+    const keys = Object.keys(data);
+    if (keys.length === 0) return result;
+
+    // Format N: nested JSON (e.g., { color: { brand: { primary: "#0f6cbd" } } })
+    if (typeof data[keys[0]] === "object" && data[keys[0]] !== null) {
+      function flattenNested(obj, prefix) {
+        for (const [k, v] of Object.entries(obj)) {
+          if (k.startsWith("_")) continue;
+          const path = prefix ? prefix + "." + k : k;
+          if (typeof v === "object" && v !== null) flattenNested(v, path);
+          else result[path] = String(v);
+        }
+      }
+      // Handle preset format with light/dark wrapper
+      if (data.light) flattenNested(data.light, "");
+      else flattenNested(data, "");
+      return result;
+    }
+
+    // Format F: flat CSS-var keys (e.g., { "--rapid-color-brand-primary": "#0f6cbd" })
+    if (keys[0].startsWith("--rapid-")) {
+      for (const [k, v] of Object.entries(data)) {
+        const dotPath = k.replace(/^--rapid-/, "").replace(/-/g, ".");
+        result[dotPath] = String(v);
+      }
+      return result;
+    }
+
+    // Format D: dot-path keys (e.g., { "color.brand.primary": "#0f6cbd" })
+    for (const [k, v] of Object.entries(data)) {
+      result[k] = String(v);
+    }
+    return result;
+  }
+
+  // ── Import ──
+  document.getElementById("importBtn").addEventListener("click", () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".json";
+    input.addEventListener("change", () => {
+      const file = input.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const data = JSON.parse(reader.result);
+          const normalized = normalizeImport(data);
+          let count = 0;
+          for (const [path, val] of Object.entries(normalized)) {
+            if (path in lightValues) { lightValues[path] = val; count++; }
+          }
+          applyToDOM();
+          renderEditorPanels();
+          showToast("Imported " + count + " tokens");
+        } catch { showToast("Invalid JSON"); }
+      };
+      reader.readAsText(file);
+    });
+    input.click();
+  });
+
+  // ── Init ──
+  renderPresets();
+  renderEditorTabs();
+  renderEditorPanels();
+  renderPreview();
+  applyToDOM();
+})();
+</script>
+</body>
+</html>

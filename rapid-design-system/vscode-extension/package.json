@@ -1,0 +1,50 @@
+{
+  "name": "rapid-design-system-vscode",
+  "displayName": "Rapid Design System",
+  "description": "Autocomplete, hover info, and hardcoded-value diagnostics for RDS tokens",
+  "version": "0.1.0",
+  "publisher": "rapid-design-system",
+  "engines": { "vscode": "^1.80.0" },
+  "categories": ["Other"],
+  "activationEvents": [
+    "onLanguage:css",
+    "onLanguage:scss",
+    "onLanguage:less",
+    "onLanguage:html",
+    "onLanguage:javascript",
+    "onLanguage:javascriptreact",
+    "onLanguage:typescript",
+    "onLanguage:typescriptreact",
+    "onLanguage:vue",
+    "onLanguage:svelte"
+  ],
+  "main": "./src/extension.js",
+  "contributes": {
+    "configuration": {
+      "title": "Rapid Design System",
+      "properties": {
+        "rapidDesignSystem.tokenPath": {
+          "type": "string",
+          "default": "tokens/base.json",
+          "description": "Path to the base token JSON file (relative to workspace root)"
+        },
+        "rapidDesignSystem.darkTokenPath": {
+          "type": "string",
+          "default": "tokens/dark.json",
+          "description": "Path to the dark token JSON file (relative to workspace root)"
+        },
+        "rapidDesignSystem.diagnostics.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show warnings for hardcoded hex colours that could be RDS tokens"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "package": "npx -y @vscode/vsce package --no-dependencies"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.80.0"
+  }
+}

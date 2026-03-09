@@ -1,0 +1,24 @@
+{
+  "_preset": "Radix UI",
+  "_source": "https://www.radix-ui.com/colors",
+  "light": {
+    "color": {
+      "brand": { "primary": "#3e63dd", "secondary": "#5b7bd7", "tertiary": "#2f4eb2" },
+      "surface": { "base": "#ffffff", "raised": "#f9f9fb", "overlay": "#f0f0f3", "disabled": "#f0f0f3" },
+      "text": { "primary": "#11181c", "secondary": "#687076", "disabled": "#a0a7ad", "on-brand": "#ffffff", "link": "#3e63dd", "link-hover": "#2f4eb2" },
+      "border": { "default": "#dfe3e6", "strong": "#c1c8cd" },
+      "focus": { "ring": "#3e63dd" },
+      "status": { "info": "#0091ff", "success": "#30a46c", "warning": "#ffc53d", "danger": "#e5484d" }
+    }
+  },
+  "dark": {
+    "color": {
+      "brand": { "primary": "#849dff", "secondary": "#a5b4fc", "tertiary": "#6e83d0" },
+      "surface": { "base": "#111113", "raised": "#19191b", "overlay": "#222225", "disabled": "#19191b" },
+      "text": { "primary": "#eeeef0", "secondary": "#9ba1a6", "disabled": "#5c6166", "on-brand": "#ffffff", "link": "#849dff", "link-hover": "#a5b4fc" },
+      "border": { "default": "#2b2b2f", "strong": "#3e3e44" },
+      "focus": { "ring": "#849dff" },
+      "status": { "info": "#52a9ff", "success": "#4cc38a", "warning": "#ffd60a", "danger": "#ff6369" }
+    }
+  }
+}

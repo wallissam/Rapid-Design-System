@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rapid Design System</title>
+<link rel="stylesheet" href="packages/css/global.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html {
+    font-family: var(--rapid-font-family-base);
+    color: var(--rapid-color-text-primary);
+    background: var(--rapid-color-surface-base);
+  }
+  body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--rapid-spacing-xl);
+    text-align: center;
+  }
+  .hero { max-width: 640px; }
+  .logo {
+    font-size: 48px;
+    font-weight: var(--rapid-font-weight-bold);
+    letter-spacing: 0.3em;
+    color: var(--rapid-color-brand-primary);
+    margin-bottom: var(--rapid-spacing-xs);
+  }
+  .tagline {
+    font-size: var(--rapid-font-size-lg);
+    color: var(--rapid-color-text-secondary);
+    line-height: 1.6;
+    margin-bottom: var(--rapid-spacing-2xl);
+  }
+  .actions {
+    display: flex;
+    gap: var(--rapid-spacing-md);
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: var(--rapid-spacing-2xl);
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--rapid-spacing-sm) var(--rapid-spacing-lg);
+    font-family: var(--rapid-font-family-base);
+    font-size: var(--rapid-font-size-md);
+    font-weight: var(--rapid-font-weight-semibold);
+    border-radius: var(--rapid-radius-md);
+    text-decoration: none;
+    transition: opacity 0.15s;
+  }
+  .btn:hover { opacity: 0.9; }
+  .btn-primary {
+    background: var(--rapid-color-brand-primary);
+    color: var(--rapid-color-text-on-brand);
+    border: none;
+  }
+  .btn-outline {
+    background: transparent;
+    color: var(--rapid-color-text-primary);
+    border: 1px solid var(--rapid-color-border-strong);
+  }
+  .features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--rapid-spacing-md);
+    max-width: 720px;
+    width: 100%;
+    text-align: left;
+    margin-bottom: var(--rapid-spacing-2xl);
+  }
+  .feature {
+    padding: var(--rapid-spacing-md);
+    border-radius: var(--rapid-radius-lg);
+    background: var(--rapid-color-surface-raised);
+    border: 1px solid var(--rapid-color-border-default);
+  }
+  .feature-title {
+    font-weight: var(--rapid-font-weight-semibold);
+    font-size: var(--rapid-font-size-sm);
+    margin-bottom: var(--rapid-spacing-xs);
+  }
+  .feature-desc {
+    font-size: var(--rapid-font-size-sm);
+    color: var(--rapid-color-text-secondary);
+    line-height: 1.5;
+  }
+  .footer {
+    font-size: var(--rapid-font-size-sm);
+    color: var(--rapid-color-text-secondary);
+  }
+  .footer a { color: var(--rapid-color-text-link); text-decoration: none; }
+  .footer a:hover { text-decoration: underline; }
+  .mode-toggle {
+    position: fixed;
+    top: var(--rapid-spacing-md);
+    right: var(--rapid-spacing-md);
+    padding: var(--rapid-spacing-xs) var(--rapid-spacing-sm);
+    font-size: var(--rapid-font-size-sm);
+    font-family: var(--rapid-font-family-base);
+    background: var(--rapid-color-surface-raised);
+    border: 1px solid var(--rapid-color-border-default);
+    border-radius: var(--rapid-radius-md);
+    color: var(--rapid-color-text-primary);
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<button class="mode-toggle" id="themeToggle" role="switch" aria-checked="false">Dark Mode</button>
+
+<script>
+  (function () {
+    const btn = document.getElementById("themeToggle");
+    btn.addEventListener("click", function () {
+      const d = document.documentElement;
+      const isDark = d.getAttribute("data-theme") === "dark";
+      d.setAttribute("data-theme", isDark ? "" : "dark");
+      btn.textContent = isDark ? "Dark Mode" : "Light Mode";
+      btn.setAttribute("aria-checked", String(!isDark));
+    });
+  })();
+</script>
+
+<div class="hero">
+  <div class="logo">R D S</div>
+  <p class="tagline">
+    One JSON file controls every colour, font, and shadow across your entire app.
+    React, Bootstrap, AG Grid, Chart.js, dark mode &mdash; all in sync, instantly.
+  </p>
+
+  <div class="actions">
+    <a class="btn btn-primary" href="configurator/">Theme Configurator</a>
+    <a class="btn btn-outline" href="demo/">Live Demo</a>
+    <a class="btn btn-outline" href="https://github.com/wallissam/Rapid-Design-System">GitHub</a>
+  </div>
+
+  <div class="features">
+    <div class="feature">
+      <div class="feature-title">15 Adapters</div>
+      <div class="feature-desc">Bootstrap, AG Grid, Fluent UI v8+v9, Chart.js, Highcharts, Tailwind, and more.</div>
+    </div>
+    <div class="feature">
+      <div class="feature-title">Pure CSS Dark Mode</div>
+      <div class="feature-desc">One HTML attribute. No JS context. Every library responds simultaneously.</div>
+    </div>
+    <div class="feature">
+      <div class="feature-title">Figma Plugin</div>
+      <div class="feature-desc">Bidirectional sync. Import, export, and lint designs against the token set.</div>
+    </div>
+    <div class="feature">
+      <div class="feature-title">Codemod</div>
+      <div class="feature-desc">Migrate an existing codebase in minutes. Replaces hardcoded values automatically.</div>
+    </div>
+    <div class="feature">
+      <div class="feature-title">WCAG Audit</div>
+      <div class="feature-desc">Contrast checker with auto-fix suggestions. Use as a CI gate.</div>
+    </div>
+    <div class="feature">
+      <div class="feature-title">Cross-Platform</div>
+      <div class="feature-desc">Same tokens &rarr; CSS, React Native, iOS Swift, Android Kotlin.</div>
+    </div>
+  </div>
+
+  <p class="footer">
+    MIT &mdash; <a href="https://github.com/wallissam/Rapid-Design-System">Source</a>
+  </p>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,28 @@
+{
+  "_comment": [
+    "Copy this file to tokens/local.json to activate.",
+    "The build deep-merges it on top of base.json.",
+    "Only include values you want to CHANGE or ADD.",
+    "Keys named _comment are stripped during build."
+  ],
+
+  "color": {
+    "brand": {
+      "_comment": "Override: change the standard brand ramp",
+      "primary": "#e74c3c",
+      "secondary": "#c0392b",
+      "tertiary": "#a93226"
+    },
+    "accent": {
+      "_comment": "Extension: entirely new token branch",
+      "coral": "#ff6b6b",
+      "teal": "#2ec4b6",
+      "gold": "#f4d03f"
+    }
+  },
+
+  "spacing": {
+    "_comment": "Extension: add a 3xl tier that doesn't exist in base",
+    "3xl": "64px"
+  }
+}

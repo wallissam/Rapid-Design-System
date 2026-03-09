@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 12px;
+    color: var(--figma-color-text, #333);
+    background: var(--figma-color-bg, #fff);
+    padding: 0;
+    line-height: 1.5;
+  }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    border-bottom: 1px solid var(--figma-color-border, #e5e5e5);
+    background: var(--figma-color-bg-secondary, #fafafa);
+  }
+
+  .tab {
+    flex: 1;
+    padding: 10px 0;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--figma-color-text-secondary, #888);
+    border: none;
+    background: none;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: all 0.15s;
+  }
+
+  .tab:hover { color: var(--figma-color-text, #333); }
+  .tab.active {
+    color: var(--figma-color-text-brand, #0c8ce9);
+    border-bottom-color: var(--figma-color-text-brand, #0c8ce9);
+  }
+
+  /* Panels */
+  .panel { display: none; padding: 16px; }
+  .panel.active { display: flex; flex-direction: column; gap: 12px; }
+
+  /* Form elements */
+  label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--figma-color-text-secondary, #888);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  textarea {
+    width: 100%;
+    min-height: 140px;
+    padding: 8px;
+    font-family: 'SF Mono', 'Cascadia Code', monospace;
+    font-size: 11px;
+    line-height: 1.5;
+    border: 1px solid var(--figma-color-border, #e5e5e5);
+    border-radius: 4px;
+    background: var(--figma-color-bg, #fff);
+    color: var(--figma-color-text, #333);
+    resize: vertical;
+  }
+
+  textarea:focus {
+    outline: none;
+    border-color: var(--figma-color-border-brand, #0c8ce9);
+    box-shadow: 0 0 0 1px var(--figma-color-border-brand, #0c8ce9);
+  }
+
+  .btn {
+    padding: 8px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+
+  .btn:hover { opacity: 0.85; }
+  .btn:active { opacity: 0.7; }
+
+  .btn-primary {
+    background: var(--figma-color-bg-brand, #0c8ce9);
+    color: #fff;
+  }
+
+  .btn-secondary {
+    background: var(--figma-color-bg-secondary, #f0f0f0);
+    color: var(--figma-color-text, #333);
+    border: 1px solid var(--figma-color-border, #e5e5e5);
+  }
+
+  .btn-row { display: flex; gap: 8px; }
+
+  /* Status */
+  .status {
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 11px;
+    line-height: 1.5;
+    display: none;
+  }
+
+  .status.visible { display: block; }
+
+  .status.success {
+    background: #e6f4ea;
+    color: #137333;
+  }
+
+  .status.error {
+    background: #fce8e6;
+    color: #c5221f;
+  }
+
+  .status.info {
+    background: #e8f0fe;
+    color: #1a73e8;
+  }
+
+  /* Lint results */
+  .lint-list { list-style: none; max-height: 280px; overflow-y: auto; }
+
+  .lint-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--figma-color-border, #eee);
+    font-size: 11px;
+  }
+
+  .lint-swatch {
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
+    border: 1px solid var(--figma-color-border, #ddd);
+    flex-shrink: 0;
+  }
+
+  .lint-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lint-prop { color: var(--figma-color-text-secondary, #888); font-size: 10px; }
+  .lint-hex { font-family: 'SF Mono', monospace; font-size: 10px; color: var(--figma-color-text-secondary, #888); }
+
+  .section-note {
+    font-size: 11px;
+    color: var(--figma-color-text-tertiary, #aaa);
+    line-height: 1.5;
+  }
+
+  .count-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    background: var(--figma-color-bg-secondary, #f0f0f0);
+    color: var(--figma-color-text, #333);
+  }
+
+  .header-row { display: flex; align-items: center; justify-content: space-between; }
+</style>
+</head>
+<body>
+
+<!-- Tabs -->
+<div class="tabs">
+  <button class="tab active" data-panel="import">Import</button>
+  <button class="tab" data-panel="export">Export</button>
+  <button class="tab" data-panel="lint">Lint</button>
+</div>
+
+<!-- Import Panel -->
+<div class="panel active" id="panel-import">
+  <p class="section-note">
+    Paste your <code>base.json</code> to create or update Figma Variables with light + dark modes.
+  </p>
+
+  <label for="import-light">base.json (light)</label>
+  <textarea id="import-light" placeholder='Paste tokens/base.json contents here...'></textarea>
+
+  <label for="import-dark">dark.json (optional)</label>
+  <textarea id="import-dark" style="min-height:80px;" placeholder='Paste tokens/dark.json contents here...'></textarea>
+
+  <button class="btn btn-primary" id="btn-import">Import to Figma Variables</button>
+  <div class="status" id="import-status"></div>
+</div>
+
+<!-- Export Panel -->
+<div class="panel" id="panel-export">
+  <p class="section-note">
+    Read Figma Variables from this file and export them as RDS-format JSON.
+    Copy the output into <code>tokens/base.json</code> and <code>tokens/dark.json</code>.
+  </p>
+
+  <button class="btn btn-primary" id="btn-export">Export from Figma Variables</button>
+
+  <label for="export-light">base.json</label>
+  <textarea id="export-light" readonly placeholder="Click Export to populate..."></textarea>
+
+  <label for="export-dark">dark.json</label>
+  <textarea id="export-dark" readonly style="min-height:80px;" placeholder="Click Export to populate..."></textarea>
+
+  <div class="btn-row">
+    <button class="btn btn-secondary" id="btn-copy-light">Copy base.json</button>
+    <button class="btn btn-secondary" id="btn-copy-dark">Copy dark.json</button>
+  </div>
+
+  <div class="status" id="export-status"></div>
+</div>
+
+<!-- Lint Panel -->
+<div class="panel" id="panel-lint">
+  <p class="section-note">
+    Select frames or components, then lint to find colours that aren't in the RDS token set.
+    Paste your <code>base.json</code> below to define the known palette.
+  </p>
+
+  <label for="lint-tokens">Known tokens (base.json)</label>
+  <textarea id="lint-tokens" style="min-height:60px;" placeholder='Paste tokens/base.json or leave empty to use defaults...'></textarea>
+
+  <button class="btn btn-primary" id="btn-lint">Lint Selection</button>
+
+  <div class="header-row" id="lint-header" style="display:none;">
+    <span>Off-system colours</span>
+    <span class="count-badge" id="lint-count">0</span>
+  </div>
+
+  <ul class="lint-list" id="lint-results"></ul>
+  <div class="status" id="lint-status"></div>
+</div>
+
+<script>
+// ---------------------------------------------------------------------------
+// Tab switching
+// ---------------------------------------------------------------------------
+document.querySelectorAll(".tab").forEach((tab) => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+    document.querySelectorAll(".panel").forEach((p) => p.classList.remove("active"));
+    tab.classList.add("active");
+    document.getElementById("panel-" + tab.dataset.panel).classList.add("active");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+function showStatus(id, type, message) {
+  const el = document.getElementById(id);
+  el.className = "status visible " + type;
+  el.textContent = message;
+}
+
+function extractColors(obj) {
+  const colors = [];
+  function walk(o) {
+    for (const [k, v] of Object.entries(o)) {
+      if (typeof v === "object" && v !== null) { walk(v); continue; }
+      if (typeof v === "string" && /^#[0-9a-fA-F]{6}$/i.test(v)) {
+        colors.push(v.toLowerCase());
+      }
+    }
+  }
+  walk(obj);
+  return colors;
+}
+
+// ---------------------------------------------------------------------------
+// Import
+// ---------------------------------------------------------------------------
+document.getElementById("btn-import").addEventListener("click", () => {
+  const lightText = document.getElementById("import-light").value.trim();
+  const darkText = document.getElementById("import-dark").value.trim();
+
+  if (!lightText) {
+    showStatus("import-status", "error", "Please paste base.json content.");
+    return;
+  }
+
+  try {
+    JSON.parse(lightText);
+    if (darkText) JSON.parse(darkText);
+  } catch (e) {
+    showStatus("import-status", "error", "Invalid JSON: " + e.message);
+    return;
+  }
+
+  showStatus("import-status", "info", "Importing...");
+  parent.postMessage({ pluginMessage: {
+    type: "import-tokens",
+    lightTokens: lightText,
+    darkTokens: darkText || null,
+  } }, "*");
+});
+
+// ---------------------------------------------------------------------------
+// Export
+// ---------------------------------------------------------------------------
+document.getElementById("btn-export").addEventListener("click", () => {
+  showStatus("export-status", "info", "Reading Figma Variables...");
+  parent.postMessage({ pluginMessage: { type: "export-tokens" } }, "*");
+});
+
+document.getElementById("btn-copy-light").addEventListener("click", () => {
+  navigator.clipboard.writeText(document.getElementById("export-light").value);
+  showStatus("export-status", "success", "base.json copied to clipboard.");
+});
+
+document.getElementById("btn-copy-dark").addEventListener("click", () => {
+  navigator.clipboard.writeText(document.getElementById("export-dark").value);
+  showStatus("export-status", "success", "dark.json copied to clipboard.");
+});
+
+// ---------------------------------------------------------------------------
+// Lint
+// ---------------------------------------------------------------------------
+const DEFAULT_COLORS = [
+  "#0f6cbd","#115ea3","#0078d4","#ffffff","#fafafa","#f5f5f5","#f0f0f0",
+  "#242424","#616161","#a0a0a0","#d1d1d1","#ababab","#0078d4","#0e7a0d",
+  "#f7630c","#b10e1c","#479ef5","#62abf5","#2886de","#1b1b1b","#2d2d2d",
+  "#383838","#2a2a2a","#e0e0e0","#adadad","#5c5c5c","#484848","#6a6a6a",
+  "#54b054","#f98845","#e34e5e","#000000"
+];
+
+document.getElementById("btn-lint").addEventListener("click", () => {
+  let knownColors = DEFAULT_COLORS;
+  const tokensText = document.getElementById("lint-tokens").value.trim();
+
+  if (tokensText) {
+    try {
+      const parsed = JSON.parse(tokensText);
+      knownColors = extractColors(parsed);
+    } catch (e) {
+      showStatus("lint-status", "error", "Invalid JSON: " + e.message);
+      return;
+    }
+  }
+
+  showStatus("lint-status", "info", "Scanning selection...");
+  parent.postMessage({ pluginMessage: {
+    type: "lint-selection",
+    knownColors: JSON.stringify(knownColors.map((c) => c.toLowerCase())),
+  } }, "*");
+});
+
+// ---------------------------------------------------------------------------
+// Message handler (from plugin sandbox)
+// ---------------------------------------------------------------------------
+window.onmessage = (event) => {
+  const msg = event.data.pluginMessage;
+  if (!msg) return;
+
+  switch (msg.type) {
+    case "import-complete":
+      showStatus("import-status", "success",
+        `Done. ${msg.created} created, ${msg.updated} updated (${msg.total} total) in "${msg.collectionName}".`);
+      break;
+
+    case "export-complete":
+      document.getElementById("export-light").value = msg.light;
+      document.getElementById("export-dark").value = msg.dark;
+      showStatus("export-status", "success",
+        `Exported ${msg.count} variables from "${msg.collectionName}".`);
+      break;
+
+    case "lint-complete": {
+      const list = document.getElementById("lint-results");
+      const header = document.getElementById("lint-header");
+      const countBadge = document.getElementById("lint-count");
+      list.replaceChildren();
+
+      if (msg.message) {
+        showStatus("lint-status", "info", msg.message);
+        header.style.display = "none";
+        break;
+      }
+
+      if (msg.total === 0) {
+        showStatus("lint-status", "success",
+          `Clean. All colours in the selection match the token set (${msg.nodesScanned} node(s) scanned).`);
+        header.style.display = "none";
+        break;
+      }
+
+      header.style.display = "flex";
+      countBadge.textContent = msg.total;
+      showStatus("lint-status", "error",
+        `${msg.total} off-system colour(s) found in ${msg.nodesScanned} node(s).`);
+
+      for (const r of msg.results) {
+        const li = document.createElement("li");
+        li.className = "lint-item";
+
+        const swatch = document.createElement("div");
+        swatch.className = "lint-swatch";
+        swatch.style.background = r.value;
+
+        const name = document.createElement("span");
+        name.className = "lint-name";
+        name.textContent = r.nodeName;
+
+        const prop = document.createElement("span");
+        prop.className = "lint-prop";
+        prop.textContent = r.property;
+
+        const hex = document.createElement("span");
+        hex.className = "lint-hex";
+        hex.textContent = r.value;
+
+        li.appendChild(swatch);
+        li.appendChild(name);
+        li.appendChild(prop);
+        li.appendChild(hex);
+        list.appendChild(li);
+      }
+      break;
+    }
+
+    case "error":
+      const visibleStatuses = document.querySelectorAll(".status.visible");
+      if (visibleStatuses.length > 0) {
+        visibleStatuses.forEach((el) => {
+          el.className = "status visible error";
+          el.textContent = msg.message;
+        });
+      }
+      break;
+  }
+};
+</script>
+</body>
+</html>

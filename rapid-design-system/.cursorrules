@@ -1,0 +1,60 @@
+# Rapid Design System — Agent Rules
+
+## What This Is
+Design token pipeline. JSON → CSS variables + utility classes + framework adapters. One source of truth for every UI library. Dark mode is pure CSS via `data-theme` attribute. No JS theming.
+
+## The Golden Rule
+Every value traces back to `tokens/base.json`. Never hardcode values in adapters or outputs — always use `var(--rapid-*)` or the `v()` helper.
+
+## File Map
+
+**Source (edit these):** `tokens/base.json`, `dark.json`, `local.json*`, `themes/*.json*`
+**Build script:** `scripts/build-tokens.js` — all adapters and utilities defined here
+**Other scripts:** `sync-figma.js`, `import-tokens-studio.js`, `generate-dark.js`, `check-contrast.js`, `audit-tokens.js`, `export-native.js`, `migrate.js`, `generate-schema.js`
+**Generated (NEVER edit):** everything in `packages/`, `.vscode/rapid-tokens.css-data.json`, `tokens/token-schema.json`
+**Tooling:** `demo/`, `tests/`, `figma-plugin/`, `browser-extension/`, `vscode-extension/`
+
+## How To Add a Token
+1. Add to `tokens/base.json` → 2. Add dark override to `dark.json` if differs → 3. `npm run build`
+Auto-generates: CSS var, utility classes, Tailwind preset entry, VS Code autocomplete, console bridge catalog.
+
+## How To Add an Adapter
+1. Add builder function to `build-tokens.js` (returns string, uses `v()` and `fileHeader()`)
+2. Add `emit()` in `main()`
+3. Add to `package.json` exports
+CSS template: `--lib-var: ${v("color-brand-primary")};`
+JS bridge template: `import { token } from "./_css-vars-bridge"; ... token("color-brand-primary")`
+
+## Key Helpers (build-tokens.js)
+`v("key")` → `var(--rapid-key)` | `toCSSVar("key")` → `--rapid-key` | `flatten(obj, prefix)` → entries | `fileHeader(title)` → comment block | `emit(path, content)` → write+log | `sanitizeCSSValue(val)` → validates | `validateTokenKey(key)` → validates | `deepMerge(a,b)` → safe merge | `resolveAliases(obj)` → resolve $-refs
+
+## Naming
+CSS vars: `--rapid-{category}-{subcategory}-{name}` (from JSON path)
+Utility classes: `.rapid-bg-{slug}`, `.rapid-text-{slug}` (text tokens strip `text-` prefix), `.rapid-border-{slug}`, `.rapid-p-{size}`, `.rapid-px-{size}`, `.rapid-mt-{size}`, `.rapid-rounded-{size}`, `.rapid-shadow-{size}`, `.rapid-opacity-{name}`, `.rapid-z-{name}`, `.rapid-duration-{name}`, `.rapid-leading-{name}`, `.rapid-tracking-{name}`, `.rapid-focus-ring:focus-visible`
+
+## Semantic Aliasing
+`$` prefix references another token by dot-path: `"$color.brand.primary"`. Resolved at build time after local.json merge.
+
+## Security (non-negotiable)
+- Skip `__proto__`/`constructor`/`prototype` in all object iteration (`isSafeKey()`)
+- All CSS values through `sanitizeCSSValue()`, all keys through `validateTokenKey()`
+- No `innerHTML` anywhere — use `createElement` + `textContent`
+- Wrap `JSON.parse` in try/catch
+- Validate colour inputs: `/^#[0-9a-fA-F]{6}$/`
+
+## Testing
+`npm test` — 60 unit tests (build output + security invariants)
+`npm run test:e2e` — 21 Playwright tests (demo page, dark mode, Chart.js, SweetAlert2, visual regression)
+`npm run check:contrast` — WCAG audit | `npm run audit -- ./demo` — governance report
+
+## All Scripts
+`build` compile all | `test` unit | `test:e2e` Playwright | `test:all` both | `check:contrast` WCAG | `audit` governance | `sync:figma` Figma pull | `sync` pull+build | `import:tokens-studio` Tokens Studio | `generate:dark` auto dark | `export:native` RN/iOS/Android | `migrate` codemod | `generate:schema` JSON schema | `demo` serve | `pack:preview` npm preview
+
+## Tooling
+**Figma plugin** (`figma-plugin/`): Import/Export/Lint. Zero build step.
+**Browser extension** (`browser-extension/`): Manifest V3, floating palette inspector, per-domain persistence, share URL.
+**VS Code extension** (`vscode-extension/`): Autocomplete, hover, diagnostics, quick-fix.
+**Console bridge** (`packages/runtime/console.js`): `window.rds` API — `rds.get()`, `rds.set()`, `rds.dark()`, `rds.list()`, `rds.search()`, `rds.diff()`, `rds.reset()`, `rds.export()`, `rds.import()`, `rds.help()`.
+
+## Do NOT
+- Edit `packages/` (generated) | Use JS context for theming | Hardcode values in adapters | Add UI components | Use `innerHTML` | Skip security guards | Add npm dependencies to core build

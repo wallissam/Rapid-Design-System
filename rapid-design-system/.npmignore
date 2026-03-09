@@ -1,0 +1,19 @@
+# Development-only files — not shipped in the npm package
+scripts/
+demo/
+configurator/
+tests/
+figma-plugin/
+browser-extension/
+vscode-extension/
+playwright.config.js
+playwright-report/
+tokens/local*.json
+tokens/themes/
+tokens/*.example.json
+.figmarc*
+.git*
+.editorconfig
+.cursorrules
+AGENTS.md
+CHANGELOG.md
