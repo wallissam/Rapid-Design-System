@@ -201,6 +201,26 @@ npm run audit -- ./demo          # reports token adoption in the demo page
 - Shared utilities: underscore prefix (`_css-vars-bridge.ts`)
 - Native outputs: PascalCase for Swift/Kotlin (`RapidTokens.swift`), camelCase for TS (`tokens.ts`)
 
+## Figma Plugin
+
+Located in `figma-plugin/`. Three files, zero build step:
+
+| File | Role |
+|---|---|
+| `manifest.json` | Plugin metadata (name, capabilities, entry points) |
+| `code.js` | Figma sandbox code — access to Variables API, document nodes |
+| `ui.html` | Plugin UI panel — tabs for Import, Export, Lint |
+
+**Import:** Paste `base.json` + `dark.json` → creates/updates a "Rapid Design System" Variable Collection with Light + Dark modes. Creates COLOR variables for hex values, FLOAT for numeric values.
+
+**Export:** Reads Figma Variables → outputs RDS-format JSON. Copy into `tokens/base.json`.
+
+**Lint:** Select frames → scans all fills and strokes → flags colours not in the token set.
+
+Communication: `code.js` ↔ `ui.html` via `figma.ui.postMessage()` / `window.onmessage`.
+
+To test locally: Figma > Plugins > Development > Import plugin from manifest > select `figma-plugin/manifest.json`.
+
 ## What NOT To Do
 
 - Don't edit files in `packages/` — they're overwritten on every build

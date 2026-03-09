@@ -148,6 +148,17 @@ npm run audit -- ./demo          # check token adoption
 | `export:native` | Generate React Native / iOS / Android tokens |
 | `demo` | Serve interactive playground |
 
+## Figma Plugin
+
+Located in `figma-plugin/`. Three files, no build step:
+- `manifest.json` — plugin metadata
+- `code.js` — Figma sandbox (document API access)
+- `ui.html` — plugin UI (iframe)
+
+Capabilities: Import (JSON → Variables), Export (Variables → JSON), Lint (scan for off-system colours). Communication between code.js and ui.html via `postMessage`.
+
+To test: Figma > Plugins > Development > Import plugin from manifest > point to `figma-plugin/manifest.json`.
+
 ## Do NOT
 
 - Edit files in `packages/` directly (they're generated)

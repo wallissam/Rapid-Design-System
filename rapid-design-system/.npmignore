@@ -1,6 +1,7 @@
 # Development-only files — not shipped in the npm package
 scripts/
 demo/
+figma-plugin/
 tokens/local*.json
 tokens/themes/
 tokens/*.example.json
