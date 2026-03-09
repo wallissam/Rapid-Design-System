@@ -40,6 +40,8 @@ const VERBOSE = args.includes("--verbose") || args.includes("-v");
 // Config
 // ---------------------------------------------------------------------------
 
+const UNSAFE_KEYS = new Set(["__proto__", "constructor", "prototype"]);
+
 function loadConfig() {
   if (!fs.existsSync(CONFIG_PATH)) {
     fatal(
@@ -47,7 +49,12 @@ function loadConfig() {
       "  cp .figmarc.example.json .figmarc.json"
     );
   }
-  const cfg = JSON.parse(fs.readFileSync(CONFIG_PATH, "utf-8"));
+  let cfg;
+  try {
+    cfg = JSON.parse(fs.readFileSync(CONFIG_PATH, "utf-8"));
+  } catch (e) {
+    fatal(`Failed to parse .figmarc.json: ${e.message}`);
+  }
   if (!cfg.fileKey) {
     fatal(".figmarc.json is missing the required 'fileKey' field.");
   }
@@ -78,6 +85,8 @@ function figmaToken() {
   return token;
 }
 
+const MAX_RESPONSE_BYTES = 50 * 1024 * 1024; // 50 MB safety limit
+
 function figmaGet(endpoint) {
   return new Promise((resolve, reject) => {
     const options = {
@@ -88,11 +97,20 @@ function figmaGet(endpoint) {
 
     https.get(options, (res) => {
       const chunks = [];
-      res.on("data", (d) => chunks.push(d));
+      let totalBytes = 0;
+      res.on("data", (d) => {
+        totalBytes += d.length;
+        if (totalBytes > MAX_RESPONSE_BYTES) {
+          res.destroy();
+          reject(new Error(`Figma API response exceeded ${MAX_RESPONSE_BYTES} bytes — aborting.`));
+          return;
+        }
+        chunks.push(d);
+      });
       res.on("end", () => {
         const body = Buffer.concat(chunks).toString();
         if (res.statusCode !== 200) {
-          reject(new Error(`Figma API ${res.statusCode}: ${body.slice(0, 300)}`));
+          reject(new Error(`Figma API returned status ${res.statusCode}. Check your file key and token.`));
           return;
         }
         try { resolve(JSON.parse(body)); }
@@ -103,9 +121,14 @@ function figmaGet(endpoint) {
   });
 }
 
+const SAFE_FILE_KEY = /^[a-zA-Z0-9_-]+$/;
+
 async function fetchVariables(fileKey) {
+  if (!SAFE_FILE_KEY.test(fileKey)) {
+    fatal(`Invalid file key format: "${fileKey.slice(0, 30)}". Expected alphanumeric/dash/underscore.`);
+  }
   log("Fetching variables from Figma…");
-  const data = await figmaGet(`/v1/files/${fileKey}/variables/local`);
+  const data = await figmaGet(`/v1/files/${encodeURIComponent(fileKey)}/variables/local`);
   return data.meta;
 }
 
@@ -134,19 +157,23 @@ function nameToPath(name, prefix) {
     .replace(/\//g, ".")
     .split(".")
     .map((s) => s.trim().toLowerCase().replace(/\s+/g, "-"))
-    .filter(Boolean);
+    .filter(Boolean)
+    .filter((s) => !UNSAFE_KEYS.has(s));
 }
 
 function setNested(obj, pathArr, value) {
   let cursor = obj;
   for (let i = 0; i < pathArr.length - 1; i++) {
     const key = pathArr[i];
+    if (UNSAFE_KEYS.has(key)) return;
     if (!(key in cursor) || typeof cursor[key] !== "object") {
       cursor[key] = {};
     }
     cursor = cursor[key];
   }
-  cursor[pathArr[pathArr.length - 1]] = value;
+  const leafKey = pathArr[pathArr.length - 1];
+  if (UNSAFE_KEYS.has(leafKey)) return;
+  cursor[leafKey] = value;
 }
 
 /**
@@ -314,6 +341,7 @@ function diffOnly(lightTokens, darkTokens) {
 function diffObjects(light, dark) {
   const result = {};
   for (const [key, darkVal] of Object.entries(dark)) {
+    if (UNSAFE_KEYS.has(key)) continue;
     const lightVal = light[key];
     if (typeof darkVal === "object" && darkVal !== null && typeof lightVal === "object" && lightVal !== null) {
       const nested = diffObjects(lightVal, darkVal);

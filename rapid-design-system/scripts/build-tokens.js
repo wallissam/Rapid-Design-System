@@ -63,8 +63,21 @@ const PREFIX = "rapid";
 // Helpers
 // ---------------------------------------------------------------------------
 
+const UNSAFE_KEYS = new Set(["__proto__", "constructor", "prototype"]);
+const SAFE_TOKEN_KEY = /^[a-z0-9][a-z0-9-]*$/i;
+const CSS_INJECTION_CHARS = /[;{}\\<>]/;
+
+function isSafeKey(key) {
+  return !UNSAFE_KEYS.has(key);
+}
+
 function readJSON(filePath) {
-  return JSON.parse(fs.readFileSync(filePath, "utf-8"));
+  try {
+    return JSON.parse(fs.readFileSync(filePath, "utf-8"));
+  } catch (err) {
+    console.error(`[RDS] ERROR: Failed to parse ${path.relative(ROOT, filePath)}: ${err.message}`);
+    process.exit(1);
+  }
 }
 
 function readJSONIfExists(filePath) {
@@ -85,11 +98,12 @@ function ensureDir(dir) {
  * Recursively merge `source` onto `target`.  Leaf values in `source`
  * override `target`.  New branches in `source` are added.  `target`
  * keys not present in `source` are preserved.
+ * Rejects __proto__, constructor, prototype keys to prevent pollution.
  */
 function deepMerge(target, source) {
   const result = { ...target };
   for (const [key, val] of Object.entries(source)) {
-    if (key === "_comment") continue;
+    if (key === "_comment" || !isSafeKey(key)) continue;
     if (
       typeof val === "object" && val !== null && !Array.isArray(val) &&
       typeof result[key] === "object" && result[key] !== null && !Array.isArray(result[key])
@@ -123,7 +137,7 @@ function diffTokens(baseFlatKeys, mergedFlatKeys) {
 function flatten(obj, parentKey = "") {
   const entries = [];
   for (const [key, value] of Object.entries(obj)) {
-    if (key === "_comment") continue;
+    if (key === "_comment" || !isSafeKey(key)) continue;
     const fullKey = parentKey ? `${parentKey}-${key}` : key;
     if (typeof value === "object" && value !== null && !Array.isArray(value)) {
       entries.push(...flatten(value, fullKey));
@@ -132,6 +146,31 @@ function flatten(obj, parentKey = "") {
     }
   }
   return entries;
+}
+
+/**
+ * Sanitize a token value before emitting it into CSS.
+ * Rejects values containing characters that could break out of
+ * a CSS custom property declaration (; { } \ < >).
+ */
+function sanitizeCSSValue(value) {
+  const str = String(value);
+  if (CSS_INJECTION_CHARS.test(str)) {
+    console.warn(`[RDS] WARNING: Rejected unsafe token value: "${str.slice(0, 60)}"`);
+    return "/* REJECTED: unsafe value */";
+  }
+  return str;
+}
+
+/**
+ * Validate that a flat token key is safe for use as a CSS identifier.
+ */
+function validateTokenKey(flatKey) {
+  if (!SAFE_TOKEN_KEY.test(flatKey.replace(/-/g, ""))) {
+    console.warn(`[RDS] WARNING: Rejected unsafe token key: "${flatKey.slice(0, 60)}"`);
+    return false;
+  }
+  return true;
 }
 
 function toCSSVar(flatKey) {
@@ -219,13 +258,15 @@ function buildGlobalCSS(baseTokens, darkTokens) {
 
   css += `:root {\n`;
   for (const [key, value] of baseEntries) {
-    css += `  ${toCSSVar(key)}: ${value};\n`;
+    if (!validateTokenKey(key)) continue;
+    css += `  ${toCSSVar(key)}: ${sanitizeCSSValue(value)};\n`;
   }
   css += `}\n\n`;
 
   css += `[data-theme="dark"] {\n`;
   for (const [key, value] of darkEntries) {
-    css += `  ${toCSSVar(key)}: ${value};\n`;
+    if (!validateTokenKey(key)) continue;
+    css += `  ${toCSSVar(key)}: ${sanitizeCSSValue(value)};\n`;
   }
   css += `}\n`;
 
@@ -1595,10 +1636,15 @@ export function injectRapidTheme(
   const doc = container.ownerDocument;
 
   if (!doc.getElementById(RAPID_GLOBAL_CSS_ID)) {
+    const href = cssHref ?? detectCSSPath(container);
+    if (/^(https?:\\/\\/|javascript:|data:)/i.test(href) && !href.startsWith(location.origin)) {
+      console.warn("[RDS] Blocked cross-origin cssHref:", href);
+      return;
+    }
     const link = doc.createElement("link");
     link.id = RAPID_GLOBAL_CSS_ID;
     link.rel = "stylesheet";
-    link.href = cssHref ?? detectCSSPath(container);
+    link.href = href;
     doc.head.appendChild(link);
   }
 
@@ -1627,8 +1673,9 @@ export function readRapidTokens(
 ): Record<string, string> {
   const target = el ?? document.documentElement;
   const styles = getComputedStyle(target);
-  const result: Record<string, string> = {};
+  const result: Record<string, string> = Object.create(null);
   for (const t of tokens) {
+    if (t === "__proto__" || t === "constructor" || t === "prototype") continue;
     result[t] = styles.getPropertyValue(\`--rapid-\${t}\`).trim();
   }
   return result;
@@ -1712,8 +1759,9 @@ export function tokens(
 ): Record<string, string> {
   const target = el ?? document.documentElement;
   const styles = getComputedStyle(target);
-  const out: Record<string, string> = {};
+  const out: Record<string, string> = Object.create(null);
   for (const n of names) {
+    if (n === "__proto__" || n === "constructor" || n === "prototype") continue;
     out[n] = styles.getPropertyValue(\`--rapid-\${n}\`).trim();
   }
   return out;

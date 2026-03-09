@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self' 'unsafe-inline'; script-src 'unsafe-inline'; img-src 'self' data:;">
 <title>Rapid Design System — Live Demo</title>
 <link rel="stylesheet" href="../packages/css/global.css">
 <link rel="stylesheet" href="../packages/css/utilities.css">
@@ -849,34 +850,55 @@ body { display: flex; min-height: 100vh; }
     }
   }
 
+  const HEX_COLOR = /^#[0-9a-fA-F]{6}$/;
+
+  function isValidColor(v) { return HEX_COLOR.test(v); }
+
   function buildEditor() {
-    container.innerHTML = "";
+    container.replaceChildren();
     const defs = getCurrentDefaults();
     for (const [group, tokens] of Object.entries(editorGroups)) {
       const section = document.createElement("div");
       section.className = "editor-group";
-      section.innerHTML = `<div class="editor-group-title">${group}</div>`;
-      for (const [prop, label] of tokens) {
+      const title = document.createElement("div");
+      title.className = "editor-group-title";
+      title.textContent = group;
+      section.appendChild(title);
+      for (const [prop, labelText] of tokens) {
         const val = userOverrides[prop] ?? defs[prop];
         const row = document.createElement("div");
         row.className = "token-row";
         row.setAttribute("data-token", prop);
-        row.innerHTML = `
-          <span class="token-label">${label}</span>
-          <input type="color" class="token-color-input" value="${val}">
-          <input type="text" class="token-text-input" value="${val}" spellcheck="false">
-        `;
-        const colorInput = row.querySelector('input[type="color"]');
-        const textInput = row.querySelector('input[type="text"]');
+
+        const span = document.createElement("span");
+        span.className = "token-label";
+        span.textContent = labelText;
+
+        const colorInput = document.createElement("input");
+        colorInput.type = "color";
+        colorInput.className = "token-color-input";
+        colorInput.value = isValidColor(val) ? val : "#000000";
+
+        const textInput = document.createElement("input");
+        textInput.type = "text";
+        textInput.className = "token-text-input";
+        textInput.value = val;
+        textInput.spellcheck = false;
+
+        row.appendChild(span);
+        row.appendChild(colorInput);
+        row.appendChild(textInput);
+
         colorInput.addEventListener("input", (e) => {
           const v = e.target.value;
+          if (!isValidColor(v)) return;
           textInput.value = v;
           root.style.setProperty(prop, v);
           userOverrides[prop] = v;
         });
         textInput.addEventListener("input", (e) => {
           const v = e.target.value;
-          if (/^#[0-9a-fA-F]{6}$/.test(v)) {
+          if (isValidColor(v)) {
             colorInput.value = v;
             root.style.setProperty(prop, v);
             userOverrides[prop] = v;
@@ -958,11 +980,19 @@ body { display: flex; min-height: 100vh; }
     for (const [key, val] of Object.entries(spacingTokens)) {
       const row = document.createElement("div");
       row.className = "spacing-bar-row";
-      row.innerHTML = `
-        <span class="spacing-bar-label">${key}</span>
-        <div class="spacing-bar" style="width:var(--rapid-spacing-${key});"></div>
-        <span class="spacing-bar-label" style="min-width:40px;">${val}</span>
-      `;
+      const lbl1 = document.createElement("span");
+      lbl1.className = "spacing-bar-label";
+      lbl1.textContent = key;
+      const bar = document.createElement("div");
+      bar.className = "spacing-bar";
+      bar.style.width = `var(--rapid-spacing-${key})`;
+      const lbl2 = document.createElement("span");
+      lbl2.className = "spacing-bar-label";
+      lbl2.style.minWidth = "40px";
+      lbl2.textContent = val;
+      row.appendChild(lbl1);
+      row.appendChild(bar);
+      row.appendChild(lbl2);
       el.appendChild(row);
     }
   })();

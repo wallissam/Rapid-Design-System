@@ -33,6 +33,9 @@ const path = require("path");
 const ROOT = path.resolve(__dirname, "..");
 const TOKENS_DIR = path.join(ROOT, "tokens");
 
+const UNSAFE_KEYS = new Set(["__proto__", "constructor", "prototype"]);
+function isSafeKey(k) { return !UNSAFE_KEYS.has(k); }
+
 // ---------------------------------------------------------------------------
 // CLI
 // ---------------------------------------------------------------------------
@@ -67,7 +70,7 @@ function unwrapTokenValues(obj) {
 
   const result = {};
   for (const [key, val] of Object.entries(obj)) {
-    if (key.startsWith("$")) continue;
+    if (key.startsWith("$") || !isSafeKey(key)) continue;
     result[key] = unwrapTokenValues(val);
   }
   return result;
@@ -167,11 +170,13 @@ function resolveReferences(tokens) {
 }
 
 function flattenForRefs(obj, prefix = "") {
-  const result = {};
+  const result = Object.create(null);
   for (const [key, val] of Object.entries(obj)) {
+    if (!isSafeKey(key)) continue;
     const fullKey = prefix ? `${prefix}.${key}` : key;
     if (typeof val === "object" && val !== null && !("__ref" in val)) {
-      Object.assign(result, flattenForRefs(val, fullKey));
+      const nested = flattenForRefs(val, fullKey);
+      for (const [nk, nv] of Object.entries(nested)) result[nk] = nv;
     } else if (typeof val === "object" && val !== null && "__ref" in val) {
       result[fullKey] = val;
     } else {
@@ -200,6 +205,7 @@ function resolveRefTree(obj, flat, depth = 0) {
 
   const result = {};
   for (const [key, val] of Object.entries(obj)) {
+    if (!isSafeKey(key)) continue;
     result[key] = resolveRefTree(val, flat, depth);
   }
   return result;
@@ -281,6 +287,7 @@ function isMultiSet(raw) {
 function diffOnly(light, dark) {
   const result = {};
   for (const [key, darkVal] of Object.entries(dark)) {
+    if (!isSafeKey(key)) continue;
     const lightVal = light[key];
     if (typeof darkVal === "object" && darkVal !== null && typeof lightVal === "object" && lightVal !== null) {
       const nested = diffOnly(lightVal, darkVal);
@@ -354,6 +361,7 @@ function remapKeys(obj) {
 
   const result = {};
   for (const [key, val] of Object.entries(obj)) {
+    if (!isSafeKey(key)) continue;
     const lk = key.toLowerCase();
     const remapped = keyMap[lk] ?? key;
 
@@ -387,7 +395,13 @@ function main() {
   }
 
   log(`  Reading: ${path.relative(process.cwd(), absPath)}\n`);
-  const raw = JSON.parse(fs.readFileSync(absPath, "utf-8"));
+  let raw;
+  try {
+    raw = JSON.parse(fs.readFileSync(absPath, "utf-8"));
+  } catch (e) {
+    console.error(`[tokens-studio] ERROR: Failed to parse JSON: ${e.message}`);
+    process.exit(1);
+  }
 
   let lightTokens = {};
   let darkTokens = {};

@@ -35,8 +35,9 @@ export function tokens(
 ): Record<string, string> {
   const target = el ?? document.documentElement;
   const styles = getComputedStyle(target);
-  const out: Record<string, string> = {};
+  const out: Record<string, string> = Object.create(null);
   for (const n of names) {
+    if (n === "__proto__" || n === "constructor" || n === "prototype") continue;
     out[n] = styles.getPropertyValue(`--rapid-${n}`).trim();
   }
   return out;

@@ -39,10 +39,15 @@ export function injectRapidTheme(
   const doc = container.ownerDocument;
 
   if (!doc.getElementById(RAPID_GLOBAL_CSS_ID)) {
+    const href = cssHref ?? detectCSSPath(container);
+    if (/^(https?:\/\/|javascript:|data:)/i.test(href) && !href.startsWith(location.origin)) {
+      console.warn("[RDS] Blocked cross-origin cssHref:", href);
+      return;
+    }
     const link = doc.createElement("link");
     link.id = RAPID_GLOBAL_CSS_ID;
     link.rel = "stylesheet";
-    link.href = cssHref ?? detectCSSPath(container);
+    link.href = href;
     doc.head.appendChild(link);
   }
 
@@ -71,8 +76,9 @@ export function readRapidTokens(
 ): Record<string, string> {
   const target = el ?? document.documentElement;
   const styles = getComputedStyle(target);
-  const result: Record<string, string> = {};
+  const result: Record<string, string> = Object.create(null);
   for (const t of tokens) {
+    if (t === "__proto__" || t === "constructor" || t === "prototype") continue;
     result[t] = styles.getPropertyValue(`--rapid-${t}`).trim();
   }
   return result;
