@@ -7,8 +7,8 @@ import type { Theme } from "@fluentui/react-components";
 
 /**
  * A partial Fluent UI v9 Theme where every value is a CSS var()
- * reference into Rapid's global custom properties. This means
- * theme switching is pure CSS (via data-theme attribute) with
+ * reference into Rapid's global custom properties. Theme
+ * switching is pure CSS (via data-theme attribute) with
  * zero JS overhead.
  */
 export const rapidFluentTheme: Partial<Theme> = {
