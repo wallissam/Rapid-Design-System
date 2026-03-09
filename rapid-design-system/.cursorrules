@@ -1,0 +1,159 @@
+# Rapid Design System — Agent Rules
+
+## What This Is
+A design token pipeline. JSON tokens in → CSS variables, utility classes, and framework adapters out. One source of truth for every UI library. No runtime JS theming — dark mode is pure CSS via `data-theme` attribute.
+
+## The Golden Rule
+Every colour, spacing, font, radius, shadow, opacity, duration, and z-index value in the system traces back to `tokens/base.json`. If it's not in the JSON, it doesn't exist in the system. Never hardcode values in adapters or CSS — always reference `var(--rapid-*)`.
+
+## File Map (what generates what)
+
+```
+tokens/base.json ─────────┐
+tokens/dark.json ─────────┤
+tokens/local.json* ───────┤  * optional
+tokens/themes/*.json* ────┤
+                          ▼
+        scripts/build-tokens.js (npm run build)
+                          │
+        ┌─────────────────┼──────────────────────┐
+        ▼                 ▼                      ▼
+  packages/css/      packages/fluent-*/     packages/adapters/
+  global.css         index.ts              bootstrap5.css
+  utilities.css      Provider.tsx          ag-grid.css
+  scoped-overrides   (v8 + v9)            chartjs.ts
+                                           ... (15 total)
+```
+
+**NEVER edit files in `packages/`** — they are auto-generated. Edit the builder functions in `scripts/build-tokens.js` instead.
+
+## How To Add a Token
+
+1. Add to `tokens/base.json` (nested JSON path becomes hyphenated CSS var name)
+2. Add dark override to `tokens/dark.json` (only if value differs in dark mode)
+3. Run `npm run build`
+4. The token automatically gets: CSS variable in `global.css`, utility classes in `utilities.css`, Tailwind preset entry
+
+Example: `{ "color": { "accent": { "coral": "#ff6b6b" } } }` → `--rapid-color-accent-coral`
+
+## How To Add an Adapter
+
+Every adapter is a function in `scripts/build-tokens.js` that returns a string.
+
+Pattern for CSS variable override adapters:
+```js
+function buildMyLibAdapter() {
+  return `${fileHeader("My Library Adapter", [
+    "Description of what this maps.",
+    "Load AFTER the library's own CSS.",
+  ])}
+
+:root {
+  --lib-bg: ${v("color-surface-base")};
+  --lib-text: ${v("color-text-primary")};
+  --lib-border: ${v("color-border-default")};
+  --lib-primary: ${v("color-brand-primary")};
+  --lib-font: ${v("font-family-base")};
+}
+`;
+}
+```
+
+Then register in `main()`:
+```js
+emit(path.join(ADAPTERS_DIR, "my-lib.css"), buildMyLibAdapter());
+```
+
+And add to `package.json` exports:
+```json
+"./adapters/my-lib.css": "./packages/adapters/my-lib.css"
+```
+
+For JS bridge adapters (canvas libraries), import from `_css-vars-bridge.ts` and use `token()`, `palette()`, `onThemeChange()`.
+
+## How To Add a Utility Class
+
+Edit `buildUtilitiesCSS()` in `scripts/build-tokens.js`. Follow the existing pattern — iterate over flattened token entries, generate a class per token. Use `var()` references, never raw values.
+
+## Helper Functions in build-tokens.js
+
+- `v("token-key")` → `var(--rapid-token-key)` — use in adapter templates
+- `toCSSVar("key")` → `--rapid-key` — raw CSS property name
+- `flatten(obj, prefix)` → `[["prefix-key", "value"], ...]` — flattens nested JSON
+- `fileHeader(title, extraLines)` → standard comment block for generated files
+- `emit(path, content)` → write file + log
+- `sanitizeCSSValue(val)` → validates CSS value safety (rejects `;{}`)
+- `validateTokenKey(key)` → validates CSS identifier safety
+- `deepMerge(target, source)` → recursive merge with prototype pollution guard
+
+## Security Invariants
+
+- Every object iteration MUST skip `__proto__`, `constructor`, `prototype` (use `isSafeKey()` or check `UNSAFE_KEYS`)
+- Every CSS value emitted MUST pass through `sanitizeCSSValue()`
+- Every CSS key emitted MUST pass through `validateTokenKey()`
+- Never use `innerHTML` in the demo page — use `createElement` + `textContent`
+- Never interpolate user input into HTML attributes without validation
+- JSON.parse calls MUST be wrapped in try/catch
+
+## CSS Variable Naming Convention
+
+`--rapid-{category}-{subcategory}-{name}`
+
+Derived from JSON path: `{ "color": { "brand": { "primary": "#0f6cbd" } } }` → `--rapid-color-brand-primary`
+
+## Utility Class Naming Convention
+
+- Colors: `.rapid-bg-{slug}`, `.rapid-text-{slug}`, `.rapid-border-{slug}`
+- Spacing: `.rapid-p-{size}`, `.rapid-px-{size}`, `.rapid-m-{size}`, `.rapid-mt-{size}`, etc.
+- Radius: `.rapid-rounded-{size}`
+- Shadow: `.rapid-shadow-{size}`
+- Typography: `.rapid-text-size-{size}`, `.rapid-font-{weight}`, `.rapid-leading-{name}`, `.rapid-tracking-{name}`
+- Opacity: `.rapid-opacity-{name}`
+- Z-index: `.rapid-z-{name}`
+- Duration: `.rapid-duration-{name}`
+
+Note: text color tokens strip the `text-` prefix to avoid `.rapid-text-text-primary`. The slug for `color.text.primary` is `primary`, not `text-primary`.
+
+## Semantic Aliasing
+
+Token values starting with `$` reference other tokens by dot-path:
+```json
+{ "color": { "action": { "primary": "$color.brand.primary" } } }
+```
+Resolved at build time by `resolveAliases()`.
+
+## Named Themes
+
+JSON files in `tokens/themes/*.json` compile to `[data-theme="filename"]` CSS blocks. The filename (without .json) becomes the attribute value.
+
+## Verification After Changes
+
+```bash
+npm run build                    # must succeed, outputs 22+ artefacts
+npm run check:contrast           # flags accessibility issues
+npm run audit -- ./demo          # check token adoption
+```
+
+## npm Scripts Reference
+
+| Script | Purpose |
+|---|---|
+| `build` | Compile all tokens → CSS + adapters |
+| `check:contrast` | WCAG 2.1 contrast audit |
+| `audit` | Token usage governance report |
+| `sync:figma` | Pull from Figma Variables API |
+| `sync` | Pull from Figma + build |
+| `import:tokens-studio` | Transform Tokens Studio export |
+| `generate:dark` | Auto-derive dark.json from base.json |
+| `export:native` | Generate React Native / iOS / Android tokens |
+| `demo` | Serve interactive playground |
+
+## Do NOT
+
+- Edit files in `packages/` directly (they're generated)
+- Use JavaScript/React context for theme switching (use `data-theme` attribute)
+- Hardcode colour/spacing values in adapters (use `v("token-key")`)
+- Add component UI code (RDS is infrastructure, not components)
+- Use `innerHTML` in the demo page
+- Skip prototype pollution guards in object iteration
+- Ship `scripts/`, `demo/`, or `.figmarc*` in the npm package

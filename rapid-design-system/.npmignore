@@ -2,8 +2,11 @@
 scripts/
 demo/
 tokens/local*.json
+tokens/themes/
 tokens/*.example.json
 .figmarc*
 .git*
 .editorconfig
+.cursorrules
+AGENTS.md
 CHANGELOG.md
