@@ -4,7 +4,10 @@
   "private": true,
   "description": "Framework-agnostic design token governance and synchronization layer",
   "scripts": {
-    "build": "node scripts/build-tokens.js"
+    "build": "node scripts/build-tokens.js",
+    "sync:figma": "node scripts/sync-figma.js",
+    "sync": "node scripts/sync-figma.js && node scripts/build-tokens.js",
+    "import:tokens-studio": "node scripts/import-tokens-studio.js"
   },
   "devDependencies": {},
   "license": "MIT"

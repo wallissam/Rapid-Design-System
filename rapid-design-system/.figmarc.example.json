@@ -1,0 +1,31 @@
+{
+  "_comment": [
+    "Copy this file to .figmarc.json and fill in your values.",
+    "Used by: npm run sync:figma"
+  ],
+
+  "fileKey": "PASTE_YOUR_FIGMA_FILE_KEY_HERE",
+
+  "modes": {
+    "_comment": "Names of the light/dark modes as they appear in Figma.",
+    "light": "Light",
+    "dark": "Dark"
+  },
+
+  "collections": {
+    "_comment": "Filter which variable collections to sync. Omit to include all.",
+    "include": null,
+    "exclude": []
+  },
+
+  "variablePrefix": "",
+
+  "unitSuffix": {
+    "_comment": "Append units to FLOAT values based on category keywords in the variable name.",
+    "spacing": "px",
+    "radius": "px",
+    "font-size": "px",
+    "border": "px",
+    "size": "px"
+  }
+}
