@@ -51,6 +51,7 @@
     "./adapters/pcf-theme-bridge": "./packages/adapters/pcf-theme-bridge.ts",
     "./adapters/tailwind-preset": "./packages/adapters/tailwind-preset.js",
     "./runtime/theme-engine": "./packages/runtime/theme-engine.ts",
+    "./runtime/console": "./packages/runtime/console.js",
     "./native/tokens": "./packages/native/tokens.ts",
     "./tokens/base.json": "./tokens/base.json",
     "./tokens/dark.json": "./tokens/dark.json"
