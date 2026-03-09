@@ -1,7 +1,11 @@
 # Development-only files — not shipped in the npm package
 scripts/
 demo/
+tests/
 figma-plugin/
+vscode-extension/
+playwright.config.js
+playwright-report/
 tokens/local*.json
 tokens/themes/
 tokens/*.example.json

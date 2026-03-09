@@ -23,11 +23,9 @@
     "spfx",
     "pcf"
   ],
-
   "sideEffects": [
     "*.css"
   ],
-
   "exports": {
     ".": "./packages/css/global.css",
     "./css/global.css": "./packages/css/global.css",
@@ -57,7 +55,6 @@
     "./tokens/base.json": "./tokens/base.json",
     "./tokens/dark.json": "./tokens/dark.json"
   },
-
   "files": [
     "packages/",
     "tokens/base.json",
@@ -65,7 +62,6 @@
     "LICENSE",
     "README.md"
   ],
-
   "scripts": {
     "build": "node scripts/build-tokens.js",
     "prepublishOnly": "node scripts/build-tokens.js",
@@ -78,24 +74,33 @@
     "export:native": "node scripts/export-native.js",
     "migrate": "node scripts/migrate.js",
     "generate:schema": "node scripts/generate-schema.js",
+    "test": "node --test tests/unit/*.test.js",
+    "test:e2e": "npx playwright test",
+    "test:e2e:update": "npx playwright test --update-snapshots",
+    "test:all": "npm test && npm run test:e2e",
     "demo": "npx -y serve . -l 3000 --no-clipboard",
     "pack:preview": "npm pack --dry-run"
   },
-
   "peerDependencies": {
     "@fluentui/react": ">=8.0.0",
     "@fluentui/react-components": ">=9.0.0",
     "react": ">=17.0.0"
   },
-
   "peerDependenciesMeta": {
-    "@fluentui/react": { "optional": true },
-    "@fluentui/react-components": { "optional": true },
-    "react": { "optional": true }
+    "@fluentui/react": {
+      "optional": true
+    },
+    "@fluentui/react-components": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
+    }
   },
-
-  "devDependencies": {},
-
+  "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "playwright": "^1.58.2"
+  },
   "engines": {
     "node": ">=16.0.0"
   }

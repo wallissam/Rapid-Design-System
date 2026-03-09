@@ -261,9 +261,6 @@ function loadAndMergeTokens() {
   let baseTokens = readJSON(path.join(TOKENS_DIR, "base.json"));
   let darkTokens = readJSON(path.join(TOKENS_DIR, "dark.json"));
 
-  baseTokens = resolveAliases(baseTokens);
-  darkTokens = resolveAliases(darkTokens);
-
   const localPath = path.join(TOKENS_DIR, "local.json");
   const localDarkPath = path.join(TOKENS_DIR, "local-dark.json");
   const local = readJSONIfExists(localPath);
@@ -276,7 +273,7 @@ function loadAndMergeTokens() {
   const stats = { localLoaded: false, localDarkLoaded: false, overrides: 0, extensions: 0, themes: [] };
 
   if (local) {
-    mergedBase = deepMerge(baseTokens, resolveAliases(local));
+    mergedBase = deepMerge(baseTokens, local);
     stats.localLoaded = true;
     const localFlatKeys = flatten(local).map(([k]) => k);
     const baseSet = new Set(baseFlatKeys);
@@ -287,9 +284,13 @@ function loadAndMergeTokens() {
   }
 
   if (localDark) {
-    mergedDark = deepMerge(darkTokens, resolveAliases(localDark));
+    mergedDark = deepMerge(darkTokens, localDark);
     stats.localDarkLoaded = true;
   }
+
+  // Resolve $-aliases AFTER merging, so local refs can see base tokens
+  mergedBase = resolveAliases(mergedBase);
+  mergedDark = resolveAliases(mergedDark);
 
   // Named brand themes from tokens/themes/*.json
   const themes = {};

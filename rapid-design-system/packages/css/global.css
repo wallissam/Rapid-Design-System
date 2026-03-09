@@ -107,3 +107,7 @@
   --rapid-color-brand-secondary: #6d28d9;
   --rapid-color-brand-tertiary: #5b21b6;
 }
+
+[data-theme="testbrand"] {
+  --rapid-color-brand-primary: #abcdef;
+}
