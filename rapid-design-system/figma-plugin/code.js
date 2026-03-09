@@ -84,6 +84,12 @@ function parseNumeric(value) {
   return parseFloat(value) || 0;
 }
 
+function resolveTokenType(value) {
+  if (isColorValue(value)) return "COLOR";
+  if (isNumericValue(value)) return "FLOAT";
+  return "STRING";
+}
+
 async function importTokens(lightJSON, darkJSON) {
   const light = JSON.parse(lightJSON);
   const dark = darkJSON ? JSON.parse(darkJSON) : {};
@@ -120,7 +126,7 @@ async function importTokens(lightJSON, darkJSON) {
   let updated = 0;
 
   for (const entry of lightEntries) {
-    const resolvedType = isColorValue(entry.value) ? "COLOR" : "FLOAT";
+    const resolvedType = resolveTokenType(entry.value);
     let variable = existingVars.get(entry.path);
 
     if (!variable) {
@@ -134,8 +140,10 @@ async function importTokens(lightJSON, darkJSON) {
     if (resolvedType === "COLOR") {
       const rgba = hexToFigmaRGBA(entry.value);
       if (rgba) variable.setValueForMode(lightModeId, rgba);
-    } else {
+    } else if (resolvedType === "FLOAT") {
       variable.setValueForMode(lightModeId, parseNumeric(entry.value));
+    } else {
+      variable.setValueForMode(lightModeId, entry.value);
     }
 
     // Set dark value (if exists)
@@ -144,8 +152,10 @@ async function importTokens(lightJSON, darkJSON) {
       if (resolvedType === "COLOR") {
         const rgba = hexToFigmaRGBA(darkValue);
         if (rgba) variable.setValueForMode(darkModeId, rgba);
-      } else {
+      } else if (resolvedType === "FLOAT") {
         variable.setValueForMode(darkModeId, parseNumeric(darkValue));
+      } else {
+        variable.setValueForMode(darkModeId, darkValue);
       }
     }
   }
@@ -208,7 +218,7 @@ async function exportTokens() {
     const darkVal = darkModeId ? v.valuesByMode[darkModeId] : undefined;
 
     let lightFormatted = formatFigmaValue(lightVal, v.resolvedType);
-    let darkFormatted = darkVal
+    let darkFormatted = darkVal !== undefined
       ? formatFigmaValue(darkVal, v.resolvedType)
       : undefined;
 
@@ -216,7 +226,7 @@ async function exportTokens() {
       setNestedValue(lightObj, v.name, lightFormatted);
     }
 
-    if (darkFormatted !== null && darkFormatted !== lightFormatted) {
+    if (darkFormatted !== null && darkFormatted !== undefined && darkFormatted !== lightFormatted) {
       setNestedValue(darkObj, v.name, darkFormatted);
     }
   }
@@ -260,8 +270,10 @@ async function lintSelection(knownColorsJSON) {
   }
 
   const results = [];
+  let nodesScanned = 0;
 
   function lintNode(node) {
+    nodesScanned++;
     // Check fills
     if ("fills" in node && Array.isArray(node.fills)) {
       for (const fill of node.fills) {
@@ -319,6 +331,6 @@ async function lintSelection(knownColorsJSON) {
   send("lint-complete", {
     results: Array.from(unique.values()),
     total: unique.size,
-    nodesScanned: selection.length,
+    nodesScanned,
   });
 }
