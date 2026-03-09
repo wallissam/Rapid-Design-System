@@ -130,7 +130,10 @@ body { display: flex; min-height: 100vh; }
 <div class="main">
   <div class="preview-bar">
     <span class="preview-bar-title">Live Preview</span>
-    <div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <a href="../demo/" style="font-size:11px;color:var(--rapid-color-text-link);text-decoration:none;">Live Demo</a>
+      <span style="color:var(--rapid-color-border-default);">&middot;</span>
+      <a href="https://github.com/wallissam/Rapid-Design-System" style="font-size:11px;color:var(--rapid-color-text-link);text-decoration:none;">GitHub</a>
       <button class="export-btn outline" id="importBtn">Import JSON</button>
       <button class="export-btn primary" id="exportBtn">Export Theme</button>
     </div>
@@ -173,15 +176,29 @@ body { display: flex; min-height: 100vh; }
       "Scale": [["spacing.xs","Extra Small"],["spacing.sm","Small"],["spacing.md","Medium"],["spacing.lg","Large"],["spacing.xl","Extra Large"],["spacing.2xl","2X Large"]]
     },
     "Typography": {
+      "Family": [["font.family.base","Base Font Stack"],["font.family.mono","Monospace Font Stack"]],
       "Size": [["font.size.xs","XS"],["font.size.sm","SM"],["font.size.md","MD"],["font.size.lg","LG"],["font.size.xl","XL"],["font.size.2xl","2XL"]],
-      "Weight": [["font.weight.regular","Regular"],["font.weight.semibold","Semibold"],["font.weight.bold","Bold"]]
+      "Weight": [["font.weight.regular","Regular"],["font.weight.semibold","Semibold"],["font.weight.bold","Bold"]],
+      "Line Height": [["font.line-height.tight","Tight"],["font.line-height.normal","Normal"],["font.line-height.relaxed","Relaxed"]],
+      "Letter Spacing": [["font.letter-spacing.tight","Tight"],["font.letter-spacing.normal","Normal"],["font.letter-spacing.wide","Wide"]]
     },
     "Shape": {
-      "Radius": [["radius.sm","Small"],["radius.md","Medium"],["radius.lg","Large"],["radius.xl","Extra Large"],["radius.round","Round"]]
+      "Radius": [["radius.sm","Small"],["radius.md","Medium"],["radius.lg","Large"],["radius.xl","Extra Large"],["radius.round","Round"]],
+      "Border Width": [["border.width.thin","Thin"],["border.width.thick","Thick"]],
+      "Shadow": [["shadow.sm","Small"],["shadow.md","Medium"],["shadow.lg","Large"]]
+    },
+    "Motion": {
+      "Duration": [["duration.fast","Fast"],["duration.normal","Normal"],["duration.slow","Slow"]],
+      "Easing": [["easing.default","Default"],["easing.in","Ease In"],["easing.out","Ease Out"],["easing.spring","Spring"]]
+    },
+    "Layout": {
+      "Opacity": [["opacity.disabled","Disabled"],["opacity.hover","Hover"],["opacity.subtle","Subtle"]],
+      "Z-Index": [["z.dropdown","Dropdown"],["z.sticky","Sticky"],["z.overlay","Overlay"],["z.modal","Modal"],["z.toast","Toast"]],
+      "Focus": [["focus.width","Width"],["focus.offset","Offset"]]
     }
   };
 
-  const defaults = {"color.brand.primary":"#0f6cbd","color.brand.secondary":"#115ea3","color.brand.tertiary":"#0078d4","color.surface.base":"#ffffff","color.surface.raised":"#fafafa","color.surface.overlay":"#f5f5f5","color.surface.disabled":"#f0f0f0","color.text.primary":"#242424","color.text.secondary":"#616161","color.text.disabled":"#a0a0a0","color.text.on-brand":"#ffffff","color.text.link":"#0f6cbd","color.text.link-hover":"#115ea3","color.border.default":"#d1d1d1","color.border.strong":"#ababab","color.focus.ring":"#0f6cbd","color.status.info":"#0078d4","color.status.success":"#0e7a0d","color.status.warning":"#f7630c","color.status.danger":"#b10e1c","spacing.xs":"4px","spacing.sm":"8px","spacing.md":"16px","spacing.lg":"24px","spacing.xl":"32px","spacing.2xl":"48px","font.size.xs":"10px","font.size.sm":"12px","font.size.md":"14px","font.size.lg":"18px","font.size.xl":"24px","font.size.2xl":"32px","font.weight.regular":"400","font.weight.semibold":"600","font.weight.bold":"700","radius.sm":"2px","radius.md":"4px","radius.lg":"8px","radius.xl":"12px","radius.round":"9999px"};
+  const defaults = {"color.brand.primary":"#0f6cbd","color.brand.secondary":"#115ea3","color.brand.tertiary":"#0078d4","color.surface.base":"#ffffff","color.surface.raised":"#fafafa","color.surface.overlay":"#f5f5f5","color.surface.disabled":"#f0f0f0","color.text.primary":"#242424","color.text.secondary":"#616161","color.text.disabled":"#a0a0a0","color.text.on-brand":"#ffffff","color.text.link":"#0f6cbd","color.text.link-hover":"#115ea3","color.border.default":"#d1d1d1","color.border.strong":"#ababab","color.focus.ring":"#0f6cbd","color.status.info":"#0078d4","color.status.success":"#0e7a0d","color.status.warning":"#f7630c","color.status.danger":"#b10e1c","spacing.xs":"4px","spacing.sm":"8px","spacing.md":"16px","spacing.lg":"24px","spacing.xl":"32px","spacing.2xl":"48px","font.family.base":"'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', sans-serif","font.family.mono":"'Cascadia Code', 'Fira Code', 'Consolas', monospace","font.size.xs":"10px","font.size.sm":"12px","font.size.md":"14px","font.size.lg":"18px","font.size.xl":"24px","font.size.2xl":"32px","font.weight.regular":"400","font.weight.semibold":"600","font.weight.bold":"700","font.line-height.tight":"1.2","font.line-height.normal":"1.5","font.line-height.relaxed":"1.75","font.letter-spacing.tight":"-0.02em","font.letter-spacing.normal":"0em","font.letter-spacing.wide":"0.05em","radius.sm":"2px","radius.md":"4px","radius.lg":"8px","radius.xl":"12px","radius.round":"9999px","border.width.thin":"1px","border.width.thick":"2px","shadow.sm":"0 1px 2px rgba(0, 0, 0, 0.12)","shadow.md":"0 2px 4px rgba(0, 0, 0, 0.14)","shadow.lg":"0 8px 16px rgba(0, 0, 0, 0.14)","focus.width":"2px","focus.offset":"2px","opacity.disabled":"0.4","opacity.hover":"0.9","opacity.subtle":"0.7","duration.fast":"100ms","duration.normal":"200ms","duration.slow":"400ms","easing.default":"cubic-bezier(0.4, 0, 0.2, 1)","easing.in":"cubic-bezier(0.4, 0, 1, 1)","easing.out":"cubic-bezier(0, 0, 0.2, 1)","easing.spring":"cubic-bezier(0.175, 0.885, 0.32, 1.275)","z.dropdown":"1000","z.sticky":"1100","z.overlay":"1300","z.modal":"1400","z.toast":"1500"};
 
   const darkDefaults = {"color.brand.primary":"#479ef5","color.brand.secondary":"#62abf5","color.brand.tertiary":"#2886de","color.surface.base":"#1b1b1b","color.surface.raised":"#2d2d2d","color.surface.overlay":"#383838","color.surface.disabled":"#2a2a2a","color.text.primary":"#e0e0e0","color.text.secondary":"#adadad","color.text.disabled":"#5c5c5c","color.text.on-brand":"#ffffff","color.text.link":"#479ef5","color.text.link-hover":"#62abf5","color.border.default":"#484848","color.border.strong":"#6a6a6a","color.focus.ring":"#479ef5","color.status.info":"#479ef5","color.status.success":"#54b054","color.status.warning":"#f98845","color.status.danger":"#e34e5e"};
 
@@ -419,10 +436,10 @@ body { display: flex; min-height: 100vh; }
   }
 
   const exportFormats = [
-    { name: "base.json", hint: "Copy into tokens/base.json — the full light theme.", fn: () => JSON.stringify(buildBaseJSON(), null, 2) },
-    { name: "dark.json", hint: "Copy into tokens/dark.json — only values that differ from light.", fn: () => JSON.stringify(buildDarkJSON(), null, 2) },
-    { name: "local.json", hint: "Copy into tokens/local.json — only your changes from the RDS defaults.", fn: () => JSON.stringify(buildLocalJSON(), null, 2) },
-    { name: "CSS Variables", hint: "Drop into any stylesheet. Includes :root (light) and [data-theme=\"dark\"].", fn: buildCSS },
+    { name: "base.json", hint: "Save as tokens/base.json, then run: npm run build", fn: () => JSON.stringify(buildBaseJSON(), null, 2) },
+    { name: "dark.json", hint: "Save as tokens/dark.json (only values that differ from light), then run: npm run build", fn: () => JSON.stringify(buildDarkJSON(), null, 2) },
+    { name: "local.json", hint: "Save as tokens/local.json (only your changes from RDS defaults), then run: npm run build. This is the best option if you want to keep RDS defaults for everything you didn't change.", fn: () => JSON.stringify(buildLocalJSON(), null, 2) },
+    { name: "CSS", hint: "Paste into any stylesheet or <style> tag. Works without the build pipeline — just include this CSS.", fn: buildCSS },
   ];
 
   document.getElementById("exportBtn").addEventListener("click", () => {
@@ -476,6 +493,44 @@ body { display: flex; min-height: 100vh; }
     if (e.target === e.currentTarget) e.currentTarget.classList.remove("open");
   });
 
+  // ── Universal format normalizer ──
+  function normalizeImport(data) {
+    const result = {};
+    const keys = Object.keys(data);
+    if (keys.length === 0) return result;
+
+    // Format N: nested JSON (e.g., { color: { brand: { primary: "#0f6cbd" } } })
+    if (typeof data[keys[0]] === "object" && data[keys[0]] !== null) {
+      function flattenNested(obj, prefix) {
+        for (const [k, v] of Object.entries(obj)) {
+          if (k.startsWith("_")) continue;
+          const path = prefix ? prefix + "." + k : k;
+          if (typeof v === "object" && v !== null) flattenNested(v, path);
+          else result[path] = String(v);
+        }
+      }
+      // Handle preset format with light/dark wrapper
+      if (data.light) flattenNested(data.light, "");
+      else flattenNested(data, "");
+      return result;
+    }
+
+    // Format F: flat CSS-var keys (e.g., { "--rapid-color-brand-primary": "#0f6cbd" })
+    if (keys[0].startsWith("--rapid-")) {
+      for (const [k, v] of Object.entries(data)) {
+        const dotPath = k.replace(/^--rapid-/, "").replace(/-/g, ".");
+        result[dotPath] = String(v);
+      }
+      return result;
+    }
+
+    // Format D: dot-path keys (e.g., { "color.brand.primary": "#0f6cbd" })
+    for (const [k, v] of Object.entries(data)) {
+      result[k] = String(v);
+    }
+    return result;
+  }
+
   // ── Import ──
   document.getElementById("importBtn").addEventListener("click", () => {
     const input = document.createElement("input");
@@ -488,17 +543,14 @@ body { display: flex; min-height: 100vh; }
       reader.onload = () => {
         try {
           const data = JSON.parse(reader.result);
-          function flatten(obj, prefix) {
-            for (const [k, v] of Object.entries(obj)) {
-              const path = prefix ? prefix + "." + k : k;
-              if (typeof v === "object" && v !== null) flatten(v, path);
-              else if (lightValues.hasOwnProperty(path)) lightValues[path] = String(v);
-            }
+          const normalized = normalizeImport(data);
+          let count = 0;
+          for (const [path, val] of Object.entries(normalized)) {
+            if (path in lightValues) { lightValues[path] = val; count++; }
           }
-          flatten(data, "");
           applyToDOM();
           renderEditorPanels();
-          showToast("Imported!");
+          showToast("Imported " + count + " tokens");
         } catch { showToast("Invalid JSON"); }
       };
       reader.readAsText(file);

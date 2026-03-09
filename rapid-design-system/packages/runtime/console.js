@@ -193,28 +193,56 @@
       console.log("[rds] Cleared " + removed + " override(s)");
     },
 
-    /** Export current palette as JSON (downloads a file). */
+    /** Export current palette as nested JSON (tokens/local.json format). */
     export: function () {
-      var all = {};
-      for (var name in catalog) all[PREFIX + name] = getVal(name);
-      var json = JSON.stringify(all, null, 2);
+      var nested = {};
+      for (var name in catalog) {
+        var val = getVal(name);
+        var parts = name.split("-");
+        var cursor = nested;
+        for (var i = 0; i < parts.length - 1; i++) {
+          if (!cursor[parts[i]]) cursor[parts[i]] = {};
+          cursor = cursor[parts[i]];
+        }
+        cursor[parts[parts.length - 1]] = val;
+      }
+      var json = JSON.stringify(nested, null, 2);
       var blob = new Blob([json], { type: "application/json" });
       var url = URL.createObjectURL(blob);
       var a = document.createElement("a");
       a.href = url;
-      a.download = "rds-console-export.json";
+      a.download = "local.json";
       a.click();
       URL.revokeObjectURL(url);
-      console.log("[rds] Exported " + Object.keys(all).length + " tokens");
+      console.log("[rds] Exported " + Object.keys(catalog).length + " tokens as local.json");
     },
 
-    /** Import overrides from a plain object. */
+    /** Import overrides from any format (nested JSON, flat CSS-var keys, or dot-path keys). */
     import: function (obj) {
       var count = 0;
-      for (var key in obj) {
-        var name = key.startsWith(PREFIX) ? key : PREFIX + key;
-        root.style.setProperty(name, obj[key]);
-        count++;
+      function walk(o, prefix) {
+        for (var key in o) {
+          if (key.startsWith("_")) continue;
+          var val = o[key];
+          if (typeof val === "object" && val !== null) {
+            walk(val, prefix ? prefix + "-" + key : key);
+          } else {
+            var name;
+            if (key.startsWith(PREFIX)) name = key;
+            else if (prefix) name = PREFIX + prefix + "-" + key;
+            else name = PREFIX + key.replace(/\./g, "-");
+            root.style.setProperty(name, val);
+            count++;
+          }
+        }
+      }
+      var keys = Object.keys(obj);
+      if (keys.length > 0 && typeof obj[keys[0]] === "object") {
+        walk(obj, "");
+      } else if (keys.length > 0 && keys[0].startsWith(PREFIX)) {
+        for (var k in obj) { root.style.setProperty(k, obj[k]); count++; }
+      } else {
+        for (var k in obj) { root.style.setProperty(PREFIX + k.replace(/\./g, "-"), obj[k]); count++; }
       }
       console.log("[rds] Imported " + count + " token(s)");
     },

@@ -672,7 +672,12 @@ body { display: flex; min-height: 100vh; }
   <div id="editorContainer"></div>
   <div class="sidebar-actions">
     <button class="btn-sm" id="resetBtn">Reset</button>
-    <button class="btn-sm primary" id="exportBtn">Export JSON</button>
+    <button class="btn-sm primary" id="exportBtn">Export as JSON</button>
+  </div>
+  <div style="padding:8px var(--rapid-spacing-md) var(--rapid-spacing-sm);display:flex;gap:var(--rapid-spacing-sm);font-size:var(--rapid-font-size-xs);">
+    <a href="../configurator/" style="color:var(--rapid-color-text-link);text-decoration:none;">Theme Configurator</a>
+    <span style="color:var(--rapid-color-border-default);">&middot;</span>
+    <a href="https://github.com/wallissam/Rapid-Design-System" style="color:var(--rapid-color-text-link);text-decoration:none;">GitHub</a>
   </div>
 </aside>
 
@@ -1098,19 +1103,37 @@ body { display: flex; min-height: 100vh; }
     if (typeof Chart !== "undefined") requestAnimationFrame(renderCharts);
   });
 
-  // Export
+  // ── Format normalizer (flat CSS-var keys → nested JSON) ──
+  function flatToNested(flat) {
+    const result = {};
+    for (const [key, val] of Object.entries(flat)) {
+      const clean = key.replace(/^--rapid-/, "");
+      const parts = clean.split("-");
+      let cursor = result;
+      for (let i = 0; i < parts.length - 1; i++) {
+        if (!cursor[parts[i]]) cursor[parts[i]] = {};
+        cursor = cursor[parts[i]];
+      }
+      cursor[parts[parts.length - 1]] = val;
+    }
+    return result;
+  }
+
+  // Export as local.json (nested, only overrides)
   document.getElementById("exportBtn").addEventListener("click", () => {
     const defs = getCurrentDefaults();
-    const result = {};
+    const overridesOnly = {};
     for (const prop of Object.keys(defs)) {
-      result[prop] = userOverrides[prop] ?? defs[prop];
+      const val = userOverrides[prop] ?? defs[prop];
+      overridesOnly[prop] = val;
     }
-    const json = JSON.stringify(result, null, 2);
+    const nested = flatToNested(overridesOnly);
+    const json = JSON.stringify(nested, null, 2);
     const blob = new Blob([json], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = isDark ? "rapid-tokens-dark.json" : "rapid-tokens-light.json";
+    a.download = isDark ? "dark.json" : "local.json";
     a.click();
     URL.revokeObjectURL(url);
   });
